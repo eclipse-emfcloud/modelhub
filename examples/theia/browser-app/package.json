@@ -1,0 +1,39 @@
+{
+  "private": true,
+  "name": "@eclipse-emfcloud-example/browser-app",
+  "version": "0.0.0",
+  "dependencies": {
+    "@theia/core": "*",
+    "@theia/editor": "*",
+    "@theia/filesystem": "*",
+    "@theia/markers": "*",
+    "@theia/messages": "*",
+    "@theia/monaco": "*",
+    "@theia/navigator": "*",
+    "@theia/preferences": "*",
+    "@theia/process": "*",
+    "@theia/terminal": "*",
+    "@theia/workspace": "*",
+    "@eclipse-emfcloud/model-service-theia": "*",
+    "@eclipse-emfcloud-example/model-hub-integration": "*",
+    "@eclipse-emfcloud-example/model-a-api": "*",
+    "@eclipse-emfcloud-example/model-a-model-service": "*",
+    "@eclipse-emfcloud-example/model-a-view": "*",
+    "@eclipse-emfcloud-example/model-b-api": "*",
+    "@eclipse-emfcloud-example/model-b-model-service": "*",
+    "@eclipse-emfcloud-example/model-b-view": "*"
+  },
+  "devDependencies": {
+    "@theia/cli": "*",
+    "rimraf": "^4.1.2"
+  },
+  "scripts": {
+    "build": "theia build --mode development",
+    "rebuild": "theia rebuild:browser --cacheRoot ../../..",
+    "start": "yarn -s rebuild && theia start --root-dir=../workspace",
+    "watch": "theia build --watch --mode development"
+  },
+  "theia": {
+    "target": "browser"
+  }
+}

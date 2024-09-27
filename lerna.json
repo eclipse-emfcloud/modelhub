@@ -1,0 +1,22 @@
+{
+  "version": "independent",
+  "useWorkspaces": true,
+  "useNx": false,
+  "npmClient": "yarn",
+  "command": {
+    "run": {
+      "stream": true
+    },
+    "publish": {
+      "registry": "https://npm.pkg.github.com",
+      "message": "chore(release): publish release [skip ci]",
+      "conventionalCommits": true,
+      "exact": true,
+      "includeMergedTags": true,
+      "changelogPreset": "conventionalcommits",
+      "changelog": true,
+      "private": false
+    }
+  },
+  "ignoreChanges": ["**/*.md", "**/*.spec.ts", "**/*.spec.tsx"]
+}

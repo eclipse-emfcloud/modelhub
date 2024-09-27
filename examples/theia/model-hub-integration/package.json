@@ -1,0 +1,36 @@
+{
+  "private": true,
+  "name": "@eclipse-emfcloud-example/model-hub-integration",
+  "keywords": [
+    "theia-extension"
+  ],
+  "version": "0.0.0",
+  "files": [
+    "lib",
+    "src"
+  ],
+  "dependencies": {
+    "@theia/core": "*",
+    "@theia/filesystem": "*",
+    "@theia/navigator": "*",
+    "@eclipse-emfcloud/model-manager": "*",
+    "@eclipse-emfcloud/model-service": "*",
+    "@eclipse-emfcloud/model-service-theia": "*"
+  },
+  "devDependencies": {
+    "rimraf": "^4.1.2",
+    "typescript": "~4.9.5"
+  },
+  "scripts": {
+    "prepare": "yarn run clean && yarn run build",
+    "clean": "rimraf lib",
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "theiaExtensions": [
+    {
+      "frontend": "lib/browser/frontend-module",
+      "backend": "lib/node/backend-module"
+    }
+  ]
+}

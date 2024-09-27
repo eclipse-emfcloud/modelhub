@@ -1,0 +1,44 @@
+{
+  "private": true,
+  "name": "@example/model-hub",
+  "description": "Example Theia extension demonstrating use of the Model Hub and Model Services.",
+  "license": "(EPL-2.0 OR MIT)",
+  "repository": "https://github.com/eclipse-emfcloud/modelhub",
+  "keywords": [
+    "theia-extension"
+  ],
+  "version": "0.0.0",
+  "files": [
+    "lib",
+    "src",
+    "LICENSE"
+  ],
+  "dependencies": {
+    "@theia/core": "*",
+    "@theia/workspace": "*",
+    "@eclipse-emfcloud/model-manager": "*",
+    "@eclipse-emfcloud/model-service-theia": "*",
+    "fast-json-patch": "^3.1.1",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^6.7.5",
+    "@typescript-eslint/parser": "^6.7.5",
+    "rimraf": "^4.1.2",
+    "typescript": "~4.9.5"
+  },
+  "scripts": {
+    "prepare": "yarn run clean && yarn run build",
+    "clean": "rimraf lib",
+    "build": "tsc",
+    "lint": "eslint -c ../../../.eslintrc.json --ext .ts,.tsx ./src",
+    "lint:fix": "eslint -c ../../../.eslintrc.json --fix --ext .ts,.tsx ./src",
+    "watch": "tsc -w"
+  },
+  "theiaExtensions": [
+    {
+      "frontend": "lib/browser/frontend-module",
+      "backend": "lib/node/backend-module"
+    }
+  ]
+}
