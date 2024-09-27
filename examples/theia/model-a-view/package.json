@@ -1,0 +1,34 @@
+{
+  "private": true,
+  "name": "@eclipse-emfcloud-example/model-a-view",
+  "keywords": [
+    "theia-extension"
+  ],
+  "version": "0.0.0",
+  "files": [
+    "lib",
+    "src"
+  ],
+  "dependencies": {
+    "@theia/core": "*",
+    "@eclipse-emfcloud-example/model-a-model-service": "*",
+    "@eclipse-emfcloud-example/model-hub-integration": "*",
+    "@eclipse-emfcloud/model-service-theia": "*",
+    "lodash": "^4.17.21"
+  },
+  "devDependencies": {
+    "rimraf": "^4.1.2",
+    "typescript": "~4.9.5"
+  },
+  "scripts": {
+    "prepare": "yarn run clean && yarn run build",
+    "clean": "rimraf lib",
+    "build": "tsc",
+    "watch": "tsc -w"
+  },
+  "theiaExtensions": [
+    {
+      "frontend": "lib/browser/model-a-view-frontend-module"
+    }
+  ]
+}

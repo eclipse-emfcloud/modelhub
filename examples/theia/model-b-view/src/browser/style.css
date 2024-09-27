@@ -1,0 +1,61 @@
+.ModelBWidget-input {
+  width: 100%;
+  padding: 12px 20px;
+  margin: 8px 0 2px 0;
+  display: inline-block;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  box-sizing: border-box;
+}
+
+input.error,
+input.error:focus {
+  outline-width: 1px;
+  outline-style: solid;
+  outline-offset: -1px;
+  opacity: 1;
+  outline-color: var(--theia-inputValidation-errorBorder);
+}
+input.warn,
+input.warn:focus {
+  outline-width: 1px;
+  outline-style: solid;
+  outline-offset: -1px;
+  opacity: 1;
+  outline-color: var(--theia-inputValidation-warningBorder);
+}
+
+.ModelBWidget-input:read-only {
+  background-color: #f3f3f3;
+  cursor: not-allowed;
+}
+.ModelBWidget-button {
+  width: 100%;
+  background-color: var(--theia-button-background);
+  color: var(--theia-button-foreground);
+  padding: 14px 20px;
+  margin: 8px 0;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ModelBWidget-button:hover {
+  background-color: var(--theia-button-hoverBackground);
+}
+
+#ModelBWidget-container {
+  border-radius: 5px;
+  padding: 20px;
+}
+
+.ModelBWidget-validation {
+  font-style: italic;
+  font-size: small;
+  margin-bottom: 8px;
+}
+
+.ModelBWidget-evenSum {
+  font-weight: bold;
+  margin: 8px 0 2px 0;
+}

@@ -1,0 +1,23 @@
+{
+  "private": true,
+  "name": "@eclipse-emfcloud-example/model-a-api",
+  "version": "0.0.0",
+  "files": [
+    "lib",
+    "src"
+  ],
+  "main": "lib/index.js",
+  "dependencies": {
+    "@eclipse-emfcloud/model-manager": "*"
+  },
+  "devDependencies": {
+    "rimraf": "^4.1.2",
+    "typescript": "~4.9.5"
+  },
+  "scripts": {
+    "prepare": "yarn run clean && yarn run build",
+    "clean": "rimraf lib",
+    "build": "tsc",
+    "watch": "tsc -w"
+  }
+}

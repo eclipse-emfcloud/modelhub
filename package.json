@@ -1,0 +1,55 @@
+{
+  "name": "root",
+  "private": true,
+  "engines": {
+    "yarn": ">=1.7.0 <2.x.x",
+    "node": ">=18.0.0"
+  },
+  "scripts": {
+    "prepare": "lerna run prepare",
+    "build": "lerna run build",
+    "build:npm": "lerna run build --scope=@eclipse-emfcloud/*",
+    "build:examples": "lerna run build --scope=@eclipse-emfcloud-example/*",
+    "lint": "lerna run lint --",
+    "lint:fix": "lerna run lint:fix",
+    "watch": "lerna run --parallel watch",
+    "browser": "yarn -s --cwd examples/theia/browser-app",
+    "electron": "yarn -s --cwd examples/theia/electron-app",
+    "test": "lerna run test",
+    "test:coverage": "lerna run test:coverage",
+    "test:modelservices": "yarn --cwd npm/model-service test:coverage",
+    "rebuild:clean": "rimraf .browser_modules"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^17.2.0",
+    "@commitlint/config-conventional": "^17.2.0",
+    "lerna": "^6.4.1",
+    "prettier": "^2.4.1",
+    "rimraf": "^4.1.2",
+    "ts-node": "^10.9.1"
+  },
+  "resolutions": {
+    "**/@theia/core": "1.48.3",
+    "**/@theia/editor": "1.48.3",
+    "**/@theia/electron": "1.48.3",
+    "**/@theia/filesystem": "1.48.3",
+    "**/@theia/markers": "1.48.3",
+    "**/@theia/messages": "1.48.3",
+    "**/@theia/monaco": "1.48.3",
+    "**/@theia/navigator": "1.48.3",
+    "**/@theia/preferences": "1.48.3",
+    "**/@theia/process": "1.48.3",
+    "**/@theia/property-view": "1.48.3",
+    "**/@theia/terminal": "1.48.3",
+    "**/@theia/plugin-ext": "1.48.3",
+    "**/@theia/plugin-ext-vscode": "1.48.3",
+    "**/@theia/workspace": "1.48.3",
+    "**/@theia/cli": "1.48.3"
+  },
+  "workspaces": [
+    "npm/*",
+    "ext/*",
+    "examples/guide/*",
+    "examples/theia/*"
+  ]
+}
