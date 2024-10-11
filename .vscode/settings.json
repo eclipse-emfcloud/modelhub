@@ -1,0 +1,66 @@
+// If one would like to add/remove/modify user preferences without modifying the content of the
+// workspace settings file, then one would need to modify the `settings.json` under here:
+// - Windows: %APPDATA%\Code\User\settings.json
+// - Linux: $HOME/.config/Code/User/settings.json
+// - Mac: $HOME/Library/Application Support/Code/User/settings.json
+{
+  "editor.formatOnSave": true,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": "always",
+    "source.organizeImports": "always"
+  },
+  "typescript.tsdk": "node_modules/typescript/lib",
+  "eslint.validate": ["javascript", "javascriptreact", "html", "typescript", "typescriptreact"],
+  "prettier.prettierPath": "node_modules/prettier",
+  "search.exclude": {
+    "**/node_modules": true,
+    "**/lib": true
+  },
+  "task.autoDetect": "off",
+  "[css]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[javascriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[json]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[jsons]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[markdown]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescript]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[typescriptreact]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "[yaml]": {
+    "editor.defaultFormatter": "esbenp.prettier-vscode"
+  },
+  "markdownlint.config": {
+    "no-inline-html": {
+      "allowed_elements": [
+        "br",
+        "details",
+        "kbd",
+        "summary"
+      ]
+    },
+    "MD007": {
+      "indent": 4
+    },
+    "MD029": false,
+    "MD030": {
+      "ul_single": 3,
+      "ul_multi": 3
+    },
+    "MD046": false
+  }
+}
