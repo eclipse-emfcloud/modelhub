@@ -1524,7 +1524,7 @@ const appendForOp = <K = string>(
 
   let result: AppendableCompoundCommand<K>;
 
-  if (base instanceof AppendableCompoundCommand<K>) {
+  if (base instanceof AppendableCompoundCommand) {
     result = base;
     base.append(...commands);
   } else {
