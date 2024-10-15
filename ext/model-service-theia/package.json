@@ -1,6 +1,6 @@
 {
   "name": "@eclipse-emfcloud/model-service-theia",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "Model service Theia",
   "license": "(EPL-2.0 OR MIT)",
   "contributors": [
@@ -31,7 +31,7 @@
   "main": "lib/index",
   "types": "lib/index",
   "dependencies": {
-    "@eclipse-emfcloud/model-service": "1.0.0",
+    "@eclipse-emfcloud/model-service": "1.0.1",
     "@theia/core": "*"
   },
   "devDependencies": {

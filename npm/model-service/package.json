@@ -1,6 +1,6 @@
 {
   "name": "@eclipse-emfcloud/model-service",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Model service framework",
   "license": "(EPL-2.0 OR MIT)",
   "contributors": [
@@ -31,10 +31,10 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@eclipse-emfcloud/model-accessor-bus": "1.0.0",
-    "@eclipse-emfcloud/model-manager": "1.0.0",
-    "@eclipse-emfcloud/model-validation": "1.0.0",
-    "@eclipse-emfcloud/trigger-engine": "1.0.0",
+    "@eclipse-emfcloud/model-accessor-bus": "1.0.1",
+    "@eclipse-emfcloud/model-manager": "1.0.1",
+    "@eclipse-emfcloud/model-validation": "1.0.1",
+    "@eclipse-emfcloud/trigger-engine": "1.0.1",
     "lodash": "^4.17.21"
   },
   "devDependencies": {

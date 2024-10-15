@@ -1,6 +1,6 @@
 {
   "name": "@eclipse-emfcloud/model-accessor-bus",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Model data access interface.",
   "license": "(EPL-2.0 OR MIT)",
   "contributors": [

@@ -1,6 +1,6 @@
 {
   "name": "@eclipse-emfcloud/model-validation",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Generic model validation framework.",
   "license": "(EPL-2.0 OR MIT)",
   "contributors": [

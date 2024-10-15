@@ -1,6 +1,6 @@
 {
   "name": "@eclipse-emfcloud/model-manager",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Command-based model editing with undo/redo.",
   "license": "(EPL-2.0 OR MIT)",
   "contributors": [
