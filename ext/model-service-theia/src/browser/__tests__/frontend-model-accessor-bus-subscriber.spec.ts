@@ -113,7 +113,7 @@ describe('FrontendModelAccessorBusSubscriber', () => {
     expect(onAccessorChanged.calledWith('fake-provider.get')).to.be.true;
   });
 
-  describe('getSubscriptions', async () => {
+  it('getSubscriptions', async () => {
     const token = await subscriber.subscribe(
       appContext,
       'fake-provider.get',
