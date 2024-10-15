@@ -1,20 +1,21 @@
 {
   "version": "independent",
-  "useNx": false,
   "npmClient": "yarn",
   "command": {
     "run": {
       "stream": true
     },
-    "publish": {
-      "registry": "https://npm.pkg.github.com",
-      "message": "chore(release): publish release [skip ci]",
+    "version": {
+      "message": "chore: publish ModelHub packages",
       "conventionalCommits": true,
+      "changelog": false,
       "exact": true,
       "includeMergedTags": true,
-      "changelogPreset": "conventionalcommits",
-      "changelog": true,
       "private": false
+    },
+    "publish": {
+      "npmClient": "npm",
+      "registry": "https://registry.npmjs.org/"
     }
   },
   "ignoreChanges": ["**/*.md", "**/*.spec.ts", "**/*.spec.tsx"]

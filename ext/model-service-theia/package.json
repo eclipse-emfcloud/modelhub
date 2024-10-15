@@ -17,7 +17,7 @@
     "url": "https://github.com/eclipse-emfcloud/modelhub.git"
   },
   "publishConfig": {
-    "registry": "https://npm.pkg.github.com"
+    "access": "public"
   },
   "engines": {
     "yarn": ">=1.7.0 <2.x.x",
