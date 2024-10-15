@@ -3,7 +3,19 @@
   "version": "1.0.0",
   "description": "Generic model validation framework.",
   "license": "(EPL-2.0 OR MIT)",
-  "repository": "https://github.com/eclipse-emfcloud/modelhub",
+  "contributors": [
+    {
+      "name": "Eclipse EMF Cloud Project",
+      "email": "emfcloud-dev@eclipse.org",
+      "url": "https://projects.eclipse.org/projects/ecd.emfcloud"
+    }
+  ],
+  "homepage": "https://www.eclipse.org/emfcloud/",
+  "bugs": "https://github.com/eclipse-emfcloud/modelhub/issues",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/eclipse-emfcloud/modelhub.git"
+  },
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
   },
