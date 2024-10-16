@@ -1,0 +1,73 @@
+name: Release ModelHub Packages
+
+on:
+  workflow_dispatch:
+    inputs:
+      version-type:
+        description: 'Version type to release (minor or major)'
+        required: true
+        default: 'minor'
+        type: choice
+        options:
+          - minor
+          - major
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4.2.0
+        with:
+          fetch-depth: 0 # pulls all history and tags for Lerna to detect which packages changed
+
+      - name: Setup Node 20
+        uses: actions/setup-node@v4.0.4
+        with:
+          node-version: 20.x
+          registry-url: 'https://registry.npmjs.org'
+
+      - name: Install tools and libraries
+        run: sudo apt-get install -y build-essential libx11-dev libxkbfile-dev libsecret-1-dev
+
+      - name: Use Python 3.11
+        uses: actions/setup-python@v5.2.0
+        with:
+          python-version: '3.11'
+
+      - name: Install and Build
+        shell: bash
+        run: |
+          yarn global add node-gyp
+          yarn --skip-integrity-check --network-timeout 100000
+        env:
+          NODE_OPTIONS: --max_old_space_size=4096
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Lint with ESLint
+        run: yarn lint
+
+      - name: Run tests
+        run: yarn test
+
+      - name: Determine Version Type
+        id: version_type
+        run: echo "VERSION_TYPE=${{ github.event.inputs['version-type'] }}" >> $GITHUB_ENV
+
+      - name: Publish packages
+        run: |
+          git config user.email 'eclipse-emfcloud-bot@eclipse.org'
+          git config user.name 'eclipse-emfcloud-bot'
+          # Using the chosen version type (minor or major) for Lerna publish
+          yarn lerna version $VERSION_TYPE -y --ignore-scripts --loglevel=verbose --message "chore(release): publish ModelHub $VERSION_TYPE version"
+          yarn lerna publish from-package -y --ignore-scripts --loglevel=verbose
+        env:
+          NPM_CONFIG_PROVENANCE: 'true'
+          NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}
