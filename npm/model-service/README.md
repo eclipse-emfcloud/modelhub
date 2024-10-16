@@ -1,6 +1,6 @@
-# Eclipse EMF Cloud Model Manager
+# Eclipse EMF Cloud Model Service
 
-The _Model Manager_ is an API for command-based editing, with undo/redo, of "models" primarily targeting JSON documents.
+Model Service provides a framework for model management.
 
 For more information, please visit the [EMF Cloud Website](https://www.eclipse.org/emfcloud/).
 If you have questions, contact us on our [discussions page](https://github.com/eclipse-emfcloud/emfcloud/discussions)
