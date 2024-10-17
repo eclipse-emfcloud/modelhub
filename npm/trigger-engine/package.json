@@ -2,6 +2,12 @@
   "name": "@eclipse-emfcloud/trigger-engine",
   "version": "1.0.1",
   "description": "Generic model triggers computation engine.",
+  "keywords": [
+    "theia-extension",
+    "eclipse",
+    "emfcloud",
+    "model-management"
+  ],
   "license": "(EPL-2.0 OR MIT)",
   "contributors": [
     {

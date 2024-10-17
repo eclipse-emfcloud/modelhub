@@ -1,6 +1,6 @@
-# Eclipse EMF Cloud Model Manager
+# Eclipse EMF Cloud Model Service for Eclipse Theia Applications
 
-The _Model Manager_ is an API for command-based editing, with undo/redo, of "models" primarily targeting JSON documents.
+Model Service for Eclipse Theia is a versatile solution designed to enhance Eclipse Theia applications by providing model management and interaction capabilities.
 
 For more information, please visit the [EMF Cloud Website](https://www.eclipse.org/emfcloud/).
 If you have questions, contact us on our [discussions page](https://github.com/eclipse-emfcloud/emfcloud/discussions)

@@ -2,6 +2,12 @@
   "name": "@eclipse-emfcloud/model-manager",
   "version": "1.0.1",
   "description": "Command-based model editing with undo/redo.",
+  "keywords": [
+    "theia-extension",
+    "eclipse",
+    "emfcloud",
+    "model-management"
+  ],
   "license": "(EPL-2.0 OR MIT)",
   "contributors": [
     {

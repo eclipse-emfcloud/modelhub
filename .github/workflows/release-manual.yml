@@ -1,10 +1,16 @@
-name: Publish ModelHub Packages
+name: Release ModelHub Packages
 
 on:
-  workflow_run:
-    workflows: ['CI']
-    types: [completed]
-    branches: [main]
+  workflow_dispatch:
+    inputs:
+      version-type:
+        description: 'Version type to release (minor or major)'
+        required: true
+        default: 'minor'
+        type: choice
+        options:
+          - minor
+          - major
 
 permissions:
   contents: write
@@ -12,10 +18,9 @@ permissions:
   id-token: write
 
 jobs:
-  verify-and-publish:
+  publish:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
 
     steps:
       - name: Checkout Repository
@@ -52,13 +57,17 @@ jobs:
       - name: Run tests
         run: yarn test
 
-        # Publish the ModelHub packages. Ignore lifecycle scripts and add verbose logging
-        # Scripts are ignored because we build and lint before this step
+      - name: Determine Version Type
+        id: version_type
+        run: echo "VERSION_TYPE=${{ github.event.inputs['version-type'] }}" >> $GITHUB_ENV
+
       - name: Publish packages
         run: |
           git config user.email 'eclipse-emfcloud-bot@eclipse.org'
           git config user.name 'eclipse-emfcloud-bot'
-          yarn lerna publish -y --ignore-scripts --loglevel=verbose
+          # Using the chosen version type (minor or major) for Lerna publish
+          yarn lerna version $VERSION_TYPE -y --ignore-scripts --loglevel=verbose --message "chore(release): publish ModelHub $VERSION_TYPE version"
+          yarn lerna publish from-package -y --ignore-scripts --loglevel=verbose
         env:
           NPM_CONFIG_PROVENANCE: 'true'
           NODE_AUTH_TOKEN: ${{ secrets.NPMJS_TOKEN }}

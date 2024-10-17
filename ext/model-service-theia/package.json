@@ -2,6 +2,12 @@
   "name": "@eclipse-emfcloud/model-service-theia",
   "version": "1.2.1",
   "description": "Model service Theia",
+  "keywords": [
+    "theia-extension",
+    "eclipse",
+    "emfcloud",
+    "model-management"
+  ],
   "license": "(EPL-2.0 OR MIT)",
   "contributors": [
     {
