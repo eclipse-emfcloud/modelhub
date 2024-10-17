@@ -1,6 +1,6 @@
 {
   "name": "@eclipse-emfcloud/model-manager",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Command-based model editing with undo/redo.",
   "keywords": [
     "theia-extension",

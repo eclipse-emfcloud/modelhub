@@ -1,6 +1,6 @@
 {
   "name": "@eclipse-emfcloud/model-service",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Model service framework",
   "keywords": [
     "theia-extension",
@@ -37,10 +37,10 @@
     "LICENSE"
   ],
   "dependencies": {
-    "@eclipse-emfcloud/model-accessor-bus": "1.0.1",
-    "@eclipse-emfcloud/model-manager": "1.0.1",
-    "@eclipse-emfcloud/model-validation": "1.0.1",
-    "@eclipse-emfcloud/trigger-engine": "1.0.1",
+    "@eclipse-emfcloud/model-accessor-bus": "1.0.2",
+    "@eclipse-emfcloud/model-manager": "1.0.2",
+    "@eclipse-emfcloud/model-validation": "1.0.2",
+    "@eclipse-emfcloud/trigger-engine": "1.0.2",
     "lodash": "^4.17.21"
   },
   "devDependencies": {
