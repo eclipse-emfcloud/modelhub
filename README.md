@@ -1,4 +1,4 @@
-# Eclipse EMF Cloud ModelHub
+# Eclipse EMF Cloud ModelHub [![build-CI](https://img.shields.io/github/actions/workflow/status/eclipse-emfcloud/modelhub/build-ci.yml?label=Build%20CI)](https://github.com/eclipse-emfcloud/modelhub/actions/workflows/build-ci.yml)
 
 [![Aim - Framework](https://img.shields.io/badge/Aim-Framework-brightgreen)](https://github.com/eclipsesource/.github/blob/main/repository-classification.md)
 [![Project - Active](https://img.shields.io/badge/Project-Active-2ea44f)](https://github.com/eclipsesource/.github/blob/main/repository-classification.md)
@@ -16,6 +16,15 @@ If you are interested in adopting this framework for your product or enhancing i
 ## Model Management
 
 A generic Typescript based model management framework.
+
+## Available via NPM [![publish-CI](https://img.shields.io/github/actions/workflow/status/eclipse-emfcloud/modelhub/publish-ci.yml?label=Publish%20CI)](https://github.com/eclipse-emfcloud/modelhub/actions/workflows/publish-ci.yml)
+
+-   [`@eclipse-emfcloud/model-accessor-bus`](https://www.npmjs.com/package/@eclipse-emfcloud/model-accessor-bus)
+-   [`@eclipse-emfcloud/model-manager`](https://www.npmjs.com/package/@eclipse-emfcloud/model-manager)
+-   [`@eclipse-emfcloud/model-service-theia`](https://www.npmjs.com/package/@eclipse-emfcloud/model-service-theia)
+-   [`@eclipse-emfcloud/model-service`](https://www.npmjs.com/package/@eclipse-emfcloud/model-service)
+-   [`@eclipse-emfcloud/model-validation`](https://www.npmjs.com/package/@eclipse-emfcloud/model-validation)
+-   [`@eclipse-emfcloud/trigger-engine`](https://www.npmjs.com/package/@eclipse-emfcloud/trigger-engine)
 
 ## Example application
 
