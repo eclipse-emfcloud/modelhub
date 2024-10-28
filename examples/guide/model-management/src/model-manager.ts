@@ -18,6 +18,7 @@ import {
   ModelManager,
   createModelManager,
   createModelUpdaterCommandWithResult,
+  unwrapReturnResult,
 } from '@eclipse-emfcloud/model-manager';
 import { AddressBook, AddressEntry } from './address-book';
 
@@ -84,7 +85,8 @@ async function addEntryToAddressBook(modelManager: ModelManager<string>) {
 
   const addAlice = addAddressEntry(alice);
   await stack.execute(addAlice);
-  console.log('Inserted entry at index', addAlice.result!.index);
+  const result = unwrapReturnResult(addAlice);
+  console.log('Inserted entry at index', result!.index);
   console.log('Contacts address book:', inspect(addressBook));
 
   // Inserted entry at index 0

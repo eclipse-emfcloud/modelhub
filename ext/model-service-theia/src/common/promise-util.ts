@@ -16,7 +16,7 @@
 import { CancellationError, Emitter } from '@theia/core';
 import { wait, waitForEvent } from '@theia/core/lib/common/promise-util';
 
-const DEFAULT_TIMEOUT = 30_000;
+const DEFAULT_TIMEOUT = 30_000 * 4;
 
 const stateProp = Symbol('state');
 

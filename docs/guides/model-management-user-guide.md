@@ -17,6 +17,7 @@ This document provides scenario-oriented guidance for adopters of the Model Mana
         -   [Advanced Command Scenarios](#advanced-command-scenarios)
             -   [Executing a Command on Multiple Stacks](#executing-a-command-on-multiple-stacks)
             -   [Command Stack Subscriptions](#command-stack-subscriptions)
+      * [Deferred Composition of Commands](#deferred-composition-of-commands)
 -   [Model Validation Service](#model-validation-service)
     -   [Model Validation Subscriptions](#model-validation-subscriptions)
 -   [Trigger Engine](#trigger-engine)
@@ -357,6 +358,7 @@ import {
     CommandStack,
     append,
     createModelUpdaterCommandWithResult,
+    unwrapReturnResult
 } from '@eclipse-emfcloud/model-manager';
 
 const alice: AddressEntry = {
@@ -399,15 +401,18 @@ await stack.execute(addAlice);
 And then let us see what the result of this command is:
 
 ```typescript
-console.log('Inserted entry at index', addAlice.result!.index);
+const result = unwrapReturnResult(addAlice);
+console.log('Inserted entry at index', result!.index);
 
 // Inserted entry at index 0
 ```
 
 Well, yes of course, because the address book was initially empty, the index at which this entry was inserted could only be zero.
 
-Until the command is executed, its `result` property will be `undefined`.
-After successful execution, it will have whatever value was returned by the model updater function.
+Until the command is executed, its `result` property will be a `PendingResult` and unwrapping it yields `undefined`.
+After successful execution, it will be a `ReadyResult` that contains whatever value was returned by the model updater function.
+In the event that the execution fails with an error, the command's return result will be a `FailedResult` that contains the error
+and unwrapping the command's return result rethrows that error.
 
 These commands can be composed into larger units just like any others:
 
@@ -424,8 +429,8 @@ const addCathy = addAddressEntry({
 });
 await stack.execute(append(addBobbi, addCathy));
 
-console.log('Bobbi inserted at index', addBobbi.result!.index);
-console.log('Cathy inserted at index', addCathy.result!.index);
+console.log('Bobbi inserted at index', unwrapReturnResult(addBobbi)!.index);
+console.log('Cathy inserted at index', unwrapReturnResult(addCathy)!.index);
 
 // Bobby inserted at index 0
 // Cathy inserted at index 1
@@ -437,9 +442,9 @@ As a special case, commands may be composed in a chain where the results of earl
 
 [back to top ↩︎](#contents)
 
-As JSON patch is only defined for JSON documents, it lacks specification pertaining to `undefined` values.
+As JSON patch is only defined for JSON documents; it lacks specification pertaining to `undefined` values.
 While [fast-json-patch has some capabilities to work around `undefined` values][fast-json-patch-undefined], sadly they are not sufficient out of the box.
-Its modification operations are handled according to the workaround, however the generated "test" operations will fail as they can't test for `undefined` values.
+Its modification operations are handled according to the work-around, however the generated "test" operations will fail as they can't test for `undefined` values.
 As a consequence, working with fast-json-patch directly might lead to non-applicable patches in case such `undefined` values are part of the used models.
 
 To avoid these problems, the user might only want to operate on and modify their models in a JSON compatible way.
@@ -672,7 +677,7 @@ In review, this code sample illustrates several noteworthy points:
 
 [back to top ↩︎](#contents)
 
-In addition to make dependent changes in other models when we execute commands to change our own, oftentimes the inverse is true: we need to makes changes to _our_ models when we detect changes in some other related models.
+In addition to making dependent changes in other models when we execute commands to change our own, often the inverse is true: we need to makes changes to _our_ models when we detect changes in some other related models.
 
 #### Model Manager Subscriptions
 
@@ -1602,6 +1607,73 @@ Undo dependencies work exactly the same as redo dependencies, where in order to 
 
 By default, undo and redo try implicitly to include dependencies for convenience.
 In applications in which this can result in surprising side-effects, the analysis operations of the `CoreCommandStack` API provide the dependency information that can be presented to users in the UI to obtain informed consent to include dependencies, or to indicate specifically why undo or redo are not available even accounting for dependencies.
+
+#### Deferred Composition of Commands
+
+<details>
+<summary>Source Code</summary>
+
+The example code in this section may be found in the repository in the [`@example/model-management` package's `model-commands-advanced.ts` script](../../examples/guide/model-management/src/model-commands-advanced.ts) and may be run by executing `yarn example:advancedcommands` in a terminal.
+</details>
+
+Occasionally it can be difficult, or expensive, to determine _a priori_ all of the edits required to perform some logical change to the user's data and construct a complex command that may never be executed.
+This is especially common when dealing with commands that span multiple models with complex interdependencies.
+For these cases, the framework provides _Deferred Compound Commands_ that defer all the work of creating their nested commands until it is actually time to execute them.
+
+A relatively straight-forward case is the execution of commands that may or may not have dependencies met in the model, where in the case that they are not met, we also want to include commands to satisfy those dependencies.
+For example, when adding a `Shipment` to our example package-tracking model, we want to ensure that the recipient exists in the `AddressBook` model and also that that recipient has in its list of addresses the address to which we are sending the package.
+
+To accomplish this, we can create a deferred compound command and tell it, via a list of model IDs declared up-front, that it will be editing the package-tracking model and the address-book model.
+It doesn't matter whether some of these declared models don't end up needing to be modified by any commands that we will add to the composite; the benefit is that our command provider and consequently the compound command will have exclusive access to these models with the guarantee that they will not change concurrently, in case we do need to edit them.
+
+```typescript
+import { AddressBook, AddressEntry, getAddressBookEntryWithPointer, hasAddressMatching } from './address-book';
+import { Shipment } from './package-tracking';
+import { createDeferredCompoundCommand } from '@eclipse-emfcloud/model-manager';
+
+const addShipmentWithDependenciesCommand = createDeferredCompoundCommand(
+  'Add all the Things',
+  ['example:contacts.addressbook', 'example:packages.shipping'],
+  function* (getModel) {
+    const addressBook = getModel<AddressBook>('example:contacts.addressbook');
+    if (!addressBook) {
+      throw new Error('No address book found.');
+    }
+
+    // Do we need to add an entry? If so, yield it and it will be added to the compound.
+    const existingEntry = getAddressBookEntryWithPointer(addressBook, 'Brown', 'Alice');
+    if (!existingEntry) {
+      const entryToAdd: AddressEntry = { lastName: 'Brown', firstName: 'Alice', addresses: [] };
+      yield createAddEntryCommand(entryToAdd);
+    }
+
+    const shipmentToAdd: Shipment = {
+      recipient: { lastName: 'Brown', firstName: 'Alice' },
+      shipTo: {
+        numberAndStreet: '123 Front Street',
+        city: 'Exampleville',
+        province: 'Ontario',
+        country: 'Canada',
+      },
+    };
+
+    // We're adding a shipment. Do we also need to add the address?
+    // Note that if there wasn't an existing entry, we'd have to add
+    // the address because we created the new entry without any address
+    if (!existingEntry || !hasAddressMatching(existingEntry[0], shipmentToAdd.shipTo)
+    ) {
+      yield createAddAddressCommand(shipmentToAdd.recipient.lastName, shipmentToAdd.recipient.firstName,
+        { kind: 'home', ...shipmentToAdd.shipTo });
+    }
+
+    // And, finally, the command to add the actual shipment
+    yield createAddShipmentCommand(shipmentToAdd);
+  }
+);
+```
+
+Note how the example above uses a JavaScript generator function to provide the commands to include in the composite, using a convenient sequential programming model with conditions to yield commands one by one as they are determined to be necessary and are constructed.
+The deferred compound command also supports asynchronous provision of the commands and individual commands being returned as promises, for example from other APIs that asynchronously create them.
 
 #### Command Stack Subscriptions
 

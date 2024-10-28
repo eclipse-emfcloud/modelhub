@@ -35,16 +35,56 @@ export type SimpleCommandResult = MaybePromise<Operation[] | undefined>;
  */
 export interface SimpleCommandWithResult<K, R> extends SimpleCommand<K> {
   /**
-   * The abstract result of the command, available once it has been successfully executed.
-   * The value is `undefined` until the command is executed.
+   * The abstract return-result of the command, available once it has been successfully executed.
+   * The value is {@link PendingResult pending} until the command is executed.
    *
    * Whether the `result` value remains available or valid after the command is undone or redone
    * is not specified. In general, it is recommended only to access this result after the initial
    * execution of the command.
    *
+   * The `result` property should be initialized to a {@link PendingResult} so that the command
+   * may be {@linkplain isSimpleCommandWithResult recognized as providing the result} eventually
+   * after execution.
+   *
    * @see {@link SimpleCommand.execute}
    */
-  readonly result: R | undefined;
+  readonly result: CommandReturnResult<R>;
+}
+
+/**
+ * The specific return-result of a {@link SimpleCommandWithResult} that provides
+ * an application-specific representation of the command's accomplished effect.
+ */
+export type CommandReturnResult<R> =
+  | ReadyResult<R>
+  | PendingResult
+  | FailedResult;
+
+/**
+ * Representation of a simple command result that is ready following
+ * successful execution of the command.
+ */
+export interface ReadyResult<R> {
+  status: 'ready';
+  value: R;
+}
+
+/**
+ * Representation of a simple command result that is not yet ready because
+ * execution of the command has not been completed (or perhaps not even started).
+ */
+export interface PendingResult {
+  status: 'pending';
+}
+
+/**
+ * Representation of a simple command result that is not and will not be ready because
+ * execution of the command has failed.
+ */
+export interface FailedResult {
+  status: 'failed';
+  /** An optional error message, compatible with common `Error` types. */
+  error?: { message: string };
 }
 
 /**
@@ -55,8 +95,36 @@ export const isSimpleCommandWithResult = <K, R>(
 ): command is SimpleCommandWithResult<K, R> => {
   return (
     !isCompoundCommand(command) &&
-    Object.prototype.hasOwnProperty.call(command, 'result')
+    'result' in command &&
+    !!command.result &&
+    typeof command.result === 'object' &&
+    'status' in command.result &&
+    typeof command.result.status === 'string'
   );
+};
+
+/**
+ * Unwrap the return result of a {@link SimpleCommandWithResult}.
+ *
+ * @returns the return-result `value` if it is `ready`, otherwise `undefined` if it is
+ *   still `pending`
+ * @throws the return-result `error` if it is `failed`
+ */
+export const unwrapReturnResult = <K, R>(
+  command: SimpleCommandWithResult<K, R>
+): R | undefined => {
+  const result = command.result;
+  switch (result.status) {
+    case 'ready':
+      return result.value;
+    case 'failed':
+      if (result.error) {
+        throw result.error;
+      }
+      throw new Error('Command failed.');
+    default: // 'pending'
+      return undefined;
+  }
 };
 
 /**

@@ -25,7 +25,6 @@ import {
 import {
   CoreCommandStackImpl,
   WorkingCopyManager,
-  getModelIds,
 } from './core-command-stack-impl';
 
 export class CoreModelManagerImpl<K> implements CoreModelManager<K> {
@@ -236,13 +235,7 @@ class ModelStore<K = string> implements WorkingCopyManager<K> {
     return result;
   }
 
-  commit(result: Map<Command<K>, Operation[]>): void {
-    const modelIds = Array.from(result.keys()).reduce((acc, c) => {
-      const modelIds = getModelIds(c);
-      modelIds.forEach((id) => acc.add(id));
-      return acc;
-    }, new Set<K>());
-
+  commit(result: Map<Command<K>, Operation[]>, modelIds: K[]): void {
     try {
       for (const modelId of modelIds) {
         const workingCopy = this._workingCopies.get(modelId);
@@ -253,7 +246,7 @@ class ModelStore<K = string> implements WorkingCopyManager<K> {
       }
       this.notify(result);
     } finally {
-      for (const k of modelIds.keys()) {
+      for (const k of modelIds) {
         this._open.delete(k);
       }
     }
