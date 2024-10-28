@@ -31,6 +31,7 @@ import {
   append,
   AppendableCompoundCommand,
   CoreCommandStackImpl,
+  getModelIds,
   StackEntry,
   WorkingCopyManager,
 } from '../core-command-stack-impl';
@@ -352,6 +353,8 @@ describe('CoreCommandStackImpl', () => {
   const context2 = editingContext('test.c2');
   let command1: TestCommand;
   let command2: TestCommand;
+  let command3: TestCommand;
+  let compound: AppendableCompoundCommand;
   let stack: CoreCommandStackImpl;
   let sandbox: sinon.SinonSandbox;
 
@@ -795,6 +798,11 @@ describe('CoreCommandStackImpl', () => {
     beforeEach(() => {
       command1 = new TestCommand('a');
       command2 = new TestCommand('b');
+      command3 = new TestCommand('c', 'test-model-id-3');
+      compound = new AppendableCompoundCommand(
+        'test',
+        ...[command1, command2, command3]
+      );
       stack = new CoreCommandStackImpl(workingCopyManager);
     });
 
@@ -2196,6 +2204,19 @@ describe('CoreCommandStackImpl', () => {
           'Uncaught exception in CoreCommandStack call-back.'
         );
         expect(allContextsCallback).to.have.been.called;
+      });
+    });
+
+    describe('get model Ids', () => {
+      it('should return an array with the single command model id', () => {
+        expect(getModelIds(command1)).to.be.eql(['test-model']);
+      });
+
+      it('should return an array with the compound command model ids', () => {
+        expect(getModelIds(compound)).to.be.eql([
+          'test-model',
+          'test-model-id-3',
+        ]);
       });
     });
   });

@@ -144,6 +144,7 @@ export class FrontendModelHubSubscriberImpl<K = string>
       this.trackingSubs.forEach((sub) => sub.onModelHubCreated?.(context));
     },
     onModelHubDestroyed: (context) => {
+      this.closeContext(context);
       this.knownModelHubs.delete(context);
       this.trackingSubs.forEach((sub) => sub.onModelHubDestroyed?.(context));
     },
@@ -248,14 +249,16 @@ export class FrontendModelHubSubscriberImpl<K = string>
   protected closeSub(subscriptionId: number): void {
     const context = this.getSubscriptionContext(subscriptionId);
     if (context !== undefined) {
-      this.subscriptionPipelines.delete(context);
-
-      const newSubs = this.subscriptions.filter(
-        (sub) => sub.context !== context
-      );
-      this.subscriptions.length = 0;
-      this.subscriptions.push(...newSubs);
+      this.closeContext(context);
     }
+  }
+
+  protected closeContext(context: string): void {
+    this.subscriptionPipelines.delete(context);
+
+    const newSubs = this.subscriptions.filter((sub) => sub.context !== context);
+    this.subscriptions.length = 0;
+    this.subscriptions.push(...newSubs);
   }
 
   protected updateModelCache(

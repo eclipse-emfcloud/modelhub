@@ -22,10 +22,14 @@ import sinonChai from 'sinon-chai';
 import type { Command, CompoundCommand, SimpleCommand } from '../command';
 import {
   append,
+  CommandReturnResult,
   CompoundCommandImpl,
+  FailedResult,
   groupByModelId,
   isCompoundCommand,
   isSimpleCommandWithResult,
+  ReadyResult,
+  unwrapReturnResult,
 } from '../command';
 
 chai.use(chaiLike);
@@ -117,11 +121,50 @@ describe('Command-related functions', () => {
     });
 
     it('is', () => {
-      const command = new TestCommand('test', 'model1');
-      Object.assign(command, { result: 'ok' });
+      const command = new TestCommandWithResult('test', 'model1');
       const isIt = isSimpleCommandWithResult(command);
 
       expect(isIt).to.be.true;
+    });
+  });
+
+  describe('unwrapReturnResult', () => {
+    it('pending', () => {
+      const command = new TestCommandWithResult('test', 'model1');
+      const unwrapped = unwrapReturnResult(command);
+
+      expect(unwrapped).to.be.undefined;
+    });
+
+    it('failed', () => {
+      const command = Object.assign(new TestCommand('test', 'model1'), {
+        result: {
+          status: 'failed',
+          error: new Error('💣'),
+        } satisfies FailedResult,
+      });
+      expect(() => unwrapReturnResult(command)).to.throw('💣');
+    });
+
+    it('failed without detail', () => {
+      const command = Object.assign(new TestCommand('test', 'model1'), {
+        result: {
+          status: 'failed',
+        } satisfies FailedResult,
+      });
+      expect(() => unwrapReturnResult(command)).to.throw();
+    });
+
+    it('ready', () => {
+      const command = Object.assign(new TestCommand('test', 'model1'), {
+        result: {
+          status: 'ready',
+          value: 'Hello, world!',
+        } satisfies ReadyResult<string>,
+      });
+      const unwrapped = unwrapReturnResult(command);
+
+      expect(unwrapped).to.be.eq('Hello, world!');
     });
   });
 
@@ -878,4 +921,8 @@ class AsyncTestCommand implements SimpleCommand {
       throw new Error(`Failed on ${op} as directed.`);
     }
   }
+}
+
+class TestCommandWithResult extends TestCommand {
+  result: CommandReturnResult<unknown> = { status: 'pending' };
 }

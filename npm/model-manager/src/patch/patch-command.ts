@@ -15,6 +15,7 @@
 import { Operation, applyPatch, compare } from 'fast-json-patch';
 import cloneDeep from 'lodash/cloneDeep';
 import {
+  CommandReturnResult,
   CompoundCommandImpl,
   MaybePromise,
   SimpleCommand,
@@ -324,14 +325,36 @@ export const createModelUpdaterCommandWithResult = <K, M extends object, R>(
   modelUpdater: ModelUpdater<K, M, R>,
   options?: PatchCommandOptions<K>
 ): SimpleCommandWithResult<K, R> => {
-  let _result: R | undefined;
+  let returnResult: CommandReturnResult<R> = { status: 'pending' };
   const delegate: ModelUpdater<K, M> = async (workingCopy, modelId) => {
-    _result = await modelUpdater(workingCopy, modelId);
+    try {
+      returnResult = {
+        status: 'ready',
+        value: await modelUpdater(workingCopy, modelId),
+      };
+    } catch (e: unknown) {
+      // Be sure to re-throw after creating the return-result so that
+      // the calling context of the Command Stack can unwind
+      if (
+        !!e &&
+        typeof e === 'object' &&
+        'message' in e &&
+        typeof e.message === 'string'
+      ) {
+        const error = e as { message: string };
+        returnResult = { status: 'failed', error };
+        throw e;
+      } else {
+        const error = new Error(String(e));
+        returnResult = { status: 'failed', error };
+        throw error;
+      }
+    }
   };
 
   return new (class extends PatchCommand<K> {
-    get result(): R | undefined {
-      return _result;
+    get result(): CommandReturnResult<R> {
+      return returnResult;
     }
   })(label, modelId, delegate, options);
 };

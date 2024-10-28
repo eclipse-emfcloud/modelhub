@@ -813,6 +813,47 @@ describe('ModelHubImpl', () => {
     sinon.assert.calledWith(onModelValidated, MODEL_B_ID, modelB);
   });
 
+  it('subscription sees consistent model (T2CMN-274)', async () => {
+    createModelHub(testContributionA, testContributionB);
+
+    const sub = modelHub.subscribe();
+
+    let sawCorrectModelId = false;
+    let sawCorrectModelObject = false;
+    let sawExpectedModelChange = false;
+
+    const gatherAssertions: (
+      modelId: string,
+      model: object
+    ) => Promise<void> = async (modelId, model) => {
+      sawCorrectModelId = modelId === MODEL_B_ID;
+      const currentModelB = await getModelB();
+      sawCorrectModelObject = currentModelB === model;
+      sawExpectedModelChange = currentModelB.value === 42;
+    };
+
+    let assertions: Promise<void> = Promise.reject(
+      new Error('onModelChange not called')
+    );
+
+    sub.onModelChanged = (modelId, model) =>
+      (assertions = gatherAssertions(modelId, model));
+
+    await editB(42);
+
+    await assertions;
+    expect(sawCorrectModelId, 'incorrect model ID in subscription call-back').to
+      .be.true;
+    expect(
+      sawCorrectModelObject,
+      'incorrect model retrieved from hub during subscription call-back'
+    ).to.be.true;
+    expect(
+      sawExpectedModelChange,
+      'model retrieved during call-back was not yet changed'
+    ).to.be.true;
+  });
+
   it('close subscriptions', async () => {
     createModelHub(testContributionA);
 

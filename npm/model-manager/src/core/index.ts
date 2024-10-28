@@ -18,5 +18,6 @@ export * from './command';
 export * from './command-stack-subscription';
 export * from './core-command-stack';
 export * from './core-model-manager';
+export * from './deferred-compound-command';
 export * from './editing-context';
 export * from './promises';

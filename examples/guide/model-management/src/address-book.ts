@@ -64,3 +64,19 @@ export function getAddressBookEntryWithPointer(
   }
   return undefined;
 }
+
+export function hasAddressMatching(
+  entry: AddressEntry,
+  pattern: Partial<Address>
+): boolean {
+  const matches = (address: Address): boolean => {
+    for (const [key, value] of Object.entries(pattern)) {
+      if (address[key as keyof Address] !== value) {
+        return false;
+      }
+    }
+    return true;
+  };
+
+  return entry.addresses.some(matches);
+}

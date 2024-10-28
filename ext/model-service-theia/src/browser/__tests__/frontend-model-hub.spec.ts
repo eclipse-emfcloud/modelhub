@@ -152,6 +152,43 @@ describe('FrontendModelHub', () => {
       sinon.assert.calledWithMatch(onModelChanged, MODEL1_ID, MODEL1, patch);
     });
 
+    it('subscription sees consistent model', async () => {
+      const sub = await modelHub.subscribe();
+
+      let sawCorrectModelId = false;
+      let sawCorrectModelObject = false;
+
+      const gatherAssertions: (
+        modelId: string,
+        model: object
+      ) => Promise<void> = async (modelId, model) => {
+        sawCorrectModelId = modelId === MODEL1_ID;
+        const currentModel2 = await modelHub.getModel(modelId);
+        sawCorrectModelObject = currentModel2 === model;
+      };
+
+      let assertions: Promise<void> = Promise.reject(
+        new Error('onModelChange not called')
+      );
+
+      sub.onModelChanged = (modelId, model) =>
+        (assertions = gatherAssertions(modelId, model));
+
+      const patch: Operation[] = [
+        { op: 'replace', path: '/name', value: MODEL1.name },
+      ];
+      fake.fakeModelChange(MODEL1_ID, patch);
+      await asyncsResolved();
+
+      await assertions;
+      expect(sawCorrectModelId, 'incorrect model ID in subscription call-back')
+        .to.be.true;
+      expect(
+        sawCorrectModelObject,
+        'incorrect model retrieved from hub during subscription call-back'
+      ).to.be.true;
+    });
+
     it('notifies dirty state', async () => {
       const sub = await modelHub.subscribe(MODEL1_ID);
       sub.onModelDirtyState = onModelDirtyState;

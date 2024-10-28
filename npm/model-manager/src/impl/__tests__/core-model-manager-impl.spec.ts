@@ -26,7 +26,7 @@ import type {
   EditingContext,
   SimpleCommand,
 } from '../../core';
-import { append } from '../../core';
+import { append, createDeferredCompoundCommand } from '../../core';
 import { createModelUpdaterCommand } from '../../patch';
 import { WorkingCopyManager } from '../core-command-stack-impl';
 import { CoreModelManagerImpl } from '../core-model-manager-impl';
@@ -679,13 +679,31 @@ describe('CoreModelManagerImpl', () => {
         []
       );
       try {
-        workingCopyManager.commit(results);
+        workingCopyManager.commit(results, ['nonesuch']);
 
         expect(workingCopyManager.isOpen(['nonesuch'])).to.be.false;
         expect(workingCopyManager.isOpen([key1])).to.be.true;
       } finally {
         workingCopyManager.cancel([key1]);
       }
+    });
+
+    it('no-op deferred command', async () => {
+      modelManager.setModel(key1, model1);
+      modelManager.setModel(key2, model2);
+
+      // a deferred command that specifies 2 models, but only uses one.
+      const deferredCommand = createDeferredCompoundCommand(
+        'test command',
+        [key1, key2],
+        () => {
+          return [new TestCommand('test', key1)];
+        }
+      );
+
+      await commandStack.execute(deferredCommand, context1);
+      expect(workingCopyManager.isOpen([key1])).to.be.false;
+      expect(workingCopyManager.isOpen([key2])).to.be.false;
     });
 
     describe('concurrent working copy sets', () => {

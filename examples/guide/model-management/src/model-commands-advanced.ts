@@ -17,6 +17,7 @@ import {
   Command,
   ModelManager,
   append,
+  createDeferredCompoundCommand,
   createModelManager,
   createModelUpdaterCommand,
 } from '@eclipse-emfcloud/model-manager';
@@ -25,6 +26,7 @@ import {
   AddressBook,
   AddressEntry,
   getAddressBookEntryWithPointer,
+  hasAddressMatching,
 } from './address-book';
 import { PackageTracking, Shipment } from './package-tracking';
 
@@ -492,15 +494,141 @@ async function commandStackSubscription(modelManager: ModelManager<string>) {
   dispose();
 }
 
+async function addShipmentWithNewDeliveryAddressDeferred(
+  modelManager: ModelManager<string>
+) {
+  const addShipmentWithDependenciesCommand = createDeferredCompoundCommand(
+    'Add all the Things',
+    ['example:contacts.addressbook', 'example:packages.shipping'],
+    function* (getModel) {
+      const addressBook = getModel<AddressBook>('example:contacts.addressbook');
+      if (!addressBook) {
+        throw new Error('No address book found.');
+      }
+
+      // Do we need to add an entry? If so, yield it and it will be added to the compound.
+      const existingEntry = getAddressBookEntryWithPointer(
+        addressBook,
+        'Brown',
+        'Alice'
+      );
+      if (!existingEntry) {
+        const entryToAdd: AddressEntry = {
+          lastName: 'Brown',
+          firstName: 'Alice',
+          addresses: [],
+        };
+        yield createAddEntryCommand(entryToAdd);
+      }
+
+      const shipmentToAdd: Shipment = {
+        recipient: {
+          lastName: 'Brown',
+          firstName: 'Alice',
+        },
+        shipTo: {
+          numberAndStreet: '123 Front Street',
+          city: 'Exampleville',
+          province: 'Ontario',
+          country: 'Canada',
+        },
+      };
+
+      // We're adding a shipment. Do we also need to add the address?
+      // Note that if there wasn't an existing entry, we'd have to add
+      // the address because we created the new entry without any address
+      if (
+        !existingEntry ||
+        !hasAddressMatching(existingEntry[0], shipmentToAdd.shipTo)
+      ) {
+        yield createAddAddressCommand(
+          shipmentToAdd.recipient.lastName,
+          shipmentToAdd.recipient.firstName,
+          { kind: 'home', ...shipmentToAdd.shipTo }
+        );
+      }
+
+      // And, finally, the command to add the actual shipment
+      yield createAddShipmentCommand(shipmentToAdd);
+    }
+  );
+
+  const addressBookStack = modelManager.getCommandStack('address-book');
+  await addressBookStack.execute(addShipmentWithDependenciesCommand);
+
+  let addressBook = modelManager.getModel<AddressBook>(
+    'example:contacts.addressbook'
+  );
+  let packageTracking = modelManager.getModel<PackageTracking>(
+    'example:packages.shipping'
+  );
+
+  console.log('Contacts address book:', inspect(addressBook));
+  console.log('Package tracking:', inspect(packageTracking));
+
+  // Contacts address book: {
+  //   entries: [
+  //     {
+  //       lastName: 'Brown',
+  //       firstName: 'Alice',
+  //       addresses: [
+  //         {
+  //           kind: 'home',
+  //           numberAndStreet: '123 Front Street',
+  //           city: 'Exampleville',
+  //           province: 'Ontario',
+  //           country: 'Canada'
+  //         }
+  //       ]
+  //     }
+  //   ]
+  // }
+  // Package tracking: {
+  //   shipments: [
+  //     {
+  //       recipient: { lastName: 'Brown', firstName: 'Alice' },
+  //       shipTo: {
+  //         numberAndStreet: '123 Front Street',
+  //         city: 'Exampleville',
+  //         province: 'Ontario',
+  //         country: 'Canada'
+  //       }
+  //     }
+  //   ]
+  // }
+
+  await addressBookStack.undo();
+
+  addressBook = modelManager.getModel<AddressBook>(
+    'example:contacts.addressbook'
+  );
+  packageTracking = modelManager.getModel<PackageTracking>(
+    'example:packages.shipping'
+  );
+
+  console.log('Contacts address book:', inspect(addressBook));
+  console.log('Package tracking:', inspect(packageTracking));
+
+  // Contacts address book: { entries: [] }
+  // Package tracking: { shipments: [] }
+}
+
 async function main() {
+  console.log('--- Broken scenario ---');
   let modelManager = createModels();
   await addShipmentWithNewDeliveryAddressBroken(modelManager);
 
+  console.log('--- Fixed scenario ---');
   modelManager = createModels();
   await addShipmentWithNewDeliveryAddressFixed(modelManager);
 
+  console.log('--- Command-stack subscription ---');
   modelManager = createModels();
   await commandStackSubscription(modelManager);
+
+  console.log('--- Deferred compound command ---');
+  modelManager = createModels();
+  await addShipmentWithNewDeliveryAddressDeferred(modelManager);
 }
 
 main();

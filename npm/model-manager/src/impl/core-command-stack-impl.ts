@@ -32,6 +32,7 @@ import {
   UndoRedoOp,
   isCompoundCommand,
 } from '../core';
+import { DeferredCompoundCommand } from './deferred-compound-command-impl';
 
 import { ExclusiveExecutor } from '../util';
 
@@ -103,8 +104,11 @@ export interface WorkingCopyManager<K = string> {
   /**
    * Commit the current working copy state back to the model storage,
    * with a summary of the changes that are being committed.
+   *
+   * @param result a map of commands to the operations that were executed
+   * @param modelIds the model IDs that were opened
    */
-  commit(result: Map<Command<K>, Operation[]>): void;
+  commit(result: Map<Command<K>, Operation[]>, modelIds: K[]): void;
 
   /**
    * Discard the current working copy state and close.
@@ -419,7 +423,7 @@ export class CoreCommandStackImpl<K = string> implements CoreCommandStack<K> {
     } finally {
       try {
         if (result) {
-          workingCopyManager.commit(result);
+          workingCopyManager.commit(result, modelIds);
           this.postCommitOperations.forEach((op) => op());
         } else {
           workingCopyManager.cancel(modelIds);
@@ -1581,7 +1585,20 @@ const can = <Op extends UndoRedoOp>(op: Op): Can<Op> => {
 
 export function getModelIds<K>(command: Command<K>): K[] {
   if (isCompoundCommand(command)) {
-    return Array.from(new Set(command.map((leaf) => leaf.modelId)));
+    if (command instanceof DeferredCompoundCommand) {
+      // A deferred compound command knows its own scope
+      return command.modelScope;
+    }
+
+    const modelIdSet = new Set<K>();
+
+    // Each command may be a CompoundCommand or DeferredCompoundCommand
+    // so we need to recurse into each leaf command
+    for (const leaf of command.getCommands()) {
+      getModelIds<K>(leaf).forEach((modelId) => modelIdSet.add(modelId));
+    }
+
+    return Array.from(modelIdSet);
   } else {
     return [command.modelId];
   }

@@ -866,41 +866,115 @@ describe('PatchCommand', () => {
       });
     });
 
-    it('With Result', async () => {
-      type Result = {
-        ok: boolean;
-        message: string;
-      };
+    describe('With Result', () => {
+      it('success', async () => {
+        type Result = {
+          message: string;
+        };
 
-      const updaterWithResult: ModelUpdater<
-        string,
-        typeof testDocument,
-        Result
-      > = (workingCopy, modelId) => {
-        expect(modelId).to.be.equal('document');
-        workingCopy.id = 'updated-test-id';
+        const updaterWithResult: ModelUpdater<
+          string,
+          typeof testDocument,
+          Result
+        > = (workingCopy, modelId) => {
+          expect(modelId).to.be.equal('document');
+          workingCopy.id = 'updated-test-id';
 
-        return { ok: true, message: 'Hello, world.' };
-      };
+          return { message: 'Hello, world.' };
+        };
 
-      const document = cloneDeep(testDocument);
-      const expectedDocument = cloneDeep(testDocument);
-      expectedDocument.id = 'updated-test-id';
+        const document = cloneDeep(testDocument);
+        const expectedDocument = cloneDeep(testDocument);
+        expectedDocument.id = 'updated-test-id';
 
-      const command = createModelUpdaterCommandWithResult(
-        'Test Command',
-        'document',
-        updaterWithResult
-      );
+        const command = createModelUpdaterCommandWithResult(
+          'Test Command',
+          'document',
+          updaterWithResult
+        );
 
-      expect(command.result).not.to.exist;
+        expect(command.result).to.be.like({ status: 'pending' });
 
-      // Execute
-      await expect(command.canExecute(document)).to.eventually.be.true;
-      await command.execute(document);
+        // Execute
+        await expect(command.canExecute(document)).to.eventually.be.true;
+        await command.execute(document);
 
-      expect(command.result).to.exist;
-      expect(command.result).to.be.like({ ok: true, message: 'Hello, world.' });
+        expect(command.result).to.exist;
+        expect(command.result).to.be.like({
+          status: 'ready',
+          value: { message: 'Hello, world.' },
+        });
+      });
+
+      it('fails with Error', async () => {
+        const updaterWithResult: ModelUpdater<
+          string,
+          typeof testDocument,
+          unknown
+        > = () => {
+          throw new Error('💣');
+        };
+
+        const document = cloneDeep(testDocument);
+        const expectedDocument = cloneDeep(testDocument);
+        expectedDocument.id = 'updated-test-id';
+
+        const command = createModelUpdaterCommandWithResult(
+          'Test Command',
+          'document',
+          updaterWithResult
+        );
+
+        let error: Error | undefined;
+
+        await expect(command.canExecute(document)).to.eventually.be.true;
+        try {
+          await command.execute(document);
+        } catch (e) {
+          error = e;
+        }
+
+        expect(command.result).to.exist;
+        expect(command.result).to.be.like({
+          status: 'failed',
+          error,
+        });
+      });
+
+      it('fails with string', async () => {
+        const updaterWithResult: ModelUpdater<
+          string,
+          typeof testDocument,
+          unknown
+        > = () => {
+          throw '💣';
+        };
+
+        const document = cloneDeep(testDocument);
+        const expectedDocument = cloneDeep(testDocument);
+        expectedDocument.id = 'updated-test-id';
+
+        const command = createModelUpdaterCommandWithResult(
+          'Test Command',
+          'document',
+          updaterWithResult
+        );
+
+        let error: string | undefined;
+
+        await expect(command.canExecute(document)).to.eventually.be.true;
+        try {
+          await command.execute(document);
+        } catch (e) {
+          error = e;
+        }
+
+        expect(command.result).to.exist;
+        expect(command.result).to.be.like({
+          status: 'failed',
+          error,
+        });
+      });
     });
   });
 
