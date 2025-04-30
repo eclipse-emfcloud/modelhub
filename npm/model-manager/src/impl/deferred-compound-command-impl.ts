@@ -13,12 +13,15 @@
 // SPDX-License-Identifier: EPL-2.0 OR MIT
 // *****************************************************************************
 
+import { getLogger } from '@eclipse-emfcloud/model-logger';
 import { Command, CommandResult, CompoundCommandImpl } from '../core/command';
 import {
   CommandProvider,
   PreconditionPredicate,
 } from '../core/deferred-compound-command';
 import { getModelIds } from './core-command-stack-impl';
+
+const logger = getLogger('model-manager/deferred-compound-command-impl');
 type GetModel<K> = Parameters<CommandProvider<K>>[0];
 
 /**
@@ -137,7 +140,7 @@ export class DeferredCompoundCommand<
     const modelIds = getModelIds(command);
     if (modelIds.some((modelId) => !this._modelScope.includes(modelId))) {
       // For now, this is just a warning, not a validation failure
-      console.warn(
+      logger.warn(
         `Command '${command.label}' expands the model scope of deferred compound '${this.label}'.`
       );
     }

@@ -59,7 +59,7 @@ describe('FrontendModelHub', () => {
 
   let sandbox: sinon.SinonSandbox;
   let modelHub: FrontendModelHub;
-  let fake: FakeModelHubProtocol;
+  let fake: FakeModelHubProtocol<string>;
   let provider: FrontendModelHubProvider;
 
   beforeEach(async () => {
@@ -73,7 +73,7 @@ describe('FrontendModelHub', () => {
       FrontendModelHubSubscriber
     );
 
-    fake = container.get(FakeModelHubProtocol);
+    fake = container.get<FakeModelHubProtocol<string>>(FakeModelHubProtocol);
     fake.setModel(MODEL1_ID, MODEL1);
     connectClient(fake, subscriber);
   });

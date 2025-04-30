@@ -27,7 +27,7 @@
   },
   "engines": {
     "yarn": ">=1.7.0 <2.x.x",
-    "node": ">=18.0.0"
+    "node": ">=20.14.0"
   },
   "main": "lib/index",
   "types": "lib/index",
@@ -47,7 +47,7 @@
     "@types/chai-things": "^0.0.35",
     "@types/fast-json-patch": "^1.1.5",
     "@types/mocha": "^9.0.0",
-    "@types/node": "^16.10.3",
+    "@types/node": "^20.14.0",
     "@types/sinon": "^10.0.13",
     "chai": "^4.3.4",
     "chai-like": "^1.1.1",

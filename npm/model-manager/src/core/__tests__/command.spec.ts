@@ -272,6 +272,7 @@ describe('CompoundCommandImpl', () => {
       await expect(compound.execute(getModel)).to.eventually.have.rejected;
 
       expect(consoleError).to.have.been.calledWithMatch(
+        'model-manager/command:',
         'Error in recovery of failed execute.'
       );
       expect(commands, 'commands not rewound').to.be.like([
@@ -414,15 +415,30 @@ describe('CompoundCommandImpl', () => {
   });
 
   describe('canExecute', () => {
+    let sandbox: sinon.SinonSandbox;
+
+    beforeEach(() => {
+      sandbox = sinon.createSandbox();
+    });
+
+    afterEach(() => {
+      sandbox.restore();
+    });
+
     it('is true', () => {
       return expect(compound.canExecute(getModel), 'compound not executable').to
         .eventually.be.true;
     });
 
-    it('is false by reason of being an empty compound', () => {
+    it('is true with logs by reason of being an empty compound', async () => {
+      const spyConsoleDebug = sandbox.spy(console, 'debug');
       const empty = new CompoundCommandImpl('empty');
-      return expect(empty.canExecute(getModel), 'empty compound is executable')
-        .to.eventually.be.false;
+      const result = await empty.canExecute(getModel);
+      expect(result, 'empty compound is executable').to.be.true;
+      expect(spyConsoleDebug).to.have.been.calledWithMatch(
+        'model-manager/command:',
+        `No constituent command for ${empty.label}.`
+      );
     });
 
     it('is false by reason of itself', async () => {
@@ -457,8 +473,15 @@ describe('CompoundCommandImpl', () => {
   });
 
   describe('canUndo', () => {
+    let sandbox: sinon.SinonSandbox;
+
     beforeEach(() => {
+      sandbox = sinon.createSandbox();
       return compound.execute(getModel);
+    });
+
+    afterEach(() => {
+      sandbox.restore();
     });
 
     it('is true', () => {
@@ -498,12 +521,41 @@ describe('CompoundCommandImpl', () => {
           .eventually.be.false;
       });
     });
+
+    describe('no sub commands', () => {
+      beforeEach(() => {
+        sandbox = sinon.createSandbox();
+        compound = new CompoundCommandImpl('test');
+        return compound.execute(getModel);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
+      });
+
+      it('is true even though no command', async () => {
+        const spyConsoleDebug = sandbox.spy(console, 'debug');
+        const result = await compound.canUndo(getModel);
+        expect(result, 'compound is not undoable').to.be.true;
+        expect(spyConsoleDebug).to.have.been.calledWithMatch(
+          'model-manager/command:',
+          `No constituent command for ${compound.label}.`
+        );
+      });
+    });
   });
 
   describe('canRedo', () => {
+    let sandbox: sinon.SinonSandbox;
+
     beforeEach(async () => {
+      sandbox = sinon.createSandbox();
       await compound.execute(getModel);
       await compound.undo(getModel);
+    });
+
+    afterEach(() => {
+      sandbox.restore();
     });
 
     it('is true', () => {
@@ -543,6 +595,24 @@ describe('CompoundCommandImpl', () => {
 
         return expect(compound.canRedo(getModel), 'compound is redoable').to
           .eventually.be.false;
+      });
+    });
+
+    describe('no sub commands', () => {
+      beforeEach(async () => {
+        compound = new CompoundCommandImpl('test');
+        await compound.execute(getModel);
+        await compound.undo(getModel);
+      });
+
+      it('is true even though no command', async () => {
+        const spyConsoleDebug = sandbox.spy(console, 'debug');
+        const result = await compound.canRedo(getModel);
+        expect(result, 'compound is not redoable').to.be.true;
+        expect(spyConsoleDebug).to.have.been.calledWithMatch(
+          'model-manager/command:',
+          `No constituent command for ${compound.label}.`
+        );
       });
     });
   });

@@ -50,7 +50,9 @@ export function bindFrontendModelHubProvider(bind: interfaces.Bind): void {
           sub.onModelHubCreated = (createdContext) => {
             if (createdContext === context) {
               try {
-                resolve(child.get(FrontendModelHubImpl));
+                resolve(
+                  child.get<FrontendModelHubImpl<string>>(FrontendModelHubImpl)
+                );
               } catch (error) {
                 reject(error);
               }

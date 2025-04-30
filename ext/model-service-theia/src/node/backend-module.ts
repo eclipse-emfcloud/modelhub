@@ -87,7 +87,7 @@ export default new ContainerModule((bind) => {
     return modelHub;
   });
 
-  bind(ModelHubServer).toSelf().inSingletonScope();
+  bind(ModelHubServer).toSelf();
   bind(ConnectionHandler)
     .toDynamicValue(
       ({ container }) =>
@@ -96,13 +96,17 @@ export default new ContainerModule((bind) => {
           (client) => {
             const server = container.get<ModelHubServer>(ModelHubServer);
             server.setClient(client);
+            client.onDidCloseConnection(() => {
+              server.setClient(undefined);
+              server.dispose();
+            });
             return server;
           }
         )
     )
     .inSingletonScope();
 
-  bind(ModelAccessorBusServer).toSelf().inSingletonScope();
+  bind(ModelAccessorBusServer).toSelf();
   bind(ConnectionHandler)
     .toDynamicValue(
       ({ container }) =>
@@ -113,6 +117,10 @@ export default new ContainerModule((bind) => {
               ModelAccessorBusServer
             );
             server.setClient(client);
+            client.onDidCloseConnection(() => {
+              server.setClient(undefined);
+              server.dispose();
+            });
             return server;
           }
         )

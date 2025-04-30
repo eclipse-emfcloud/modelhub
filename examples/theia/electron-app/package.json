@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@theia/cli": "*",
-    "electron": "^23.3.13",
+    "electron": "30.1.2",
     "rimraf": "^6.0.1"
   },
   "scripts": {

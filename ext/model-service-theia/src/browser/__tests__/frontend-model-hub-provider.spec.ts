@@ -48,7 +48,7 @@ const MODEL1 = { name: 'Model 1' };
 describe('FrontendModelHubProvider', () => {
   const appContext = 'test-app';
 
-  let fake: FakeModelHubProtocol;
+  let fake: FakeModelHubProtocol<string>;
   let subscriber: FrontendModelHubSubscriber;
   let modelHubProvider: FrontendModelHubProvider<string>;
   let bombFrontendModelHubImpl: () => void;
@@ -62,7 +62,7 @@ describe('FrontendModelHubProvider', () => {
       FrontendModelHubProvider
     );
 
-    fake = container.get(FakeModelHubProtocol);
+    fake = container.get<FakeModelHubProtocol<string>>(FakeModelHubProtocol);
     fake.setModel(MODEL1_ID, MODEL1);
     connectClient(fake, subscriber);
 

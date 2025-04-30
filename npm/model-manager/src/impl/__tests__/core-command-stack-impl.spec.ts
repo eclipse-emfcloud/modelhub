@@ -2201,6 +2201,7 @@ describe('CoreCommandStackImpl', () => {
         await stack.execute(new TestCommand('edit A', 'modelA'), context1);
 
         expect(consoleError).to.have.been.calledWith(
+          'model-manager/core-command-stack-impl:',
           'Uncaught exception in CoreCommandStack call-back.'
         );
         expect(allContextsCallback).to.have.been.called;
@@ -2394,6 +2395,7 @@ describe('CoreCommandStackImpl', () => {
         expect(result?.get(nonExecutableCommand)).not.to.exist;
 
         expect(consoleErrorStub).to.have.been.calledWithMatch(
+          'model-manager/core-command-stack-impl:',
           'Follow-up command is not executable'
         );
       });

@@ -179,6 +179,144 @@ describe('optimistic DeferredCompoundCommand', () => {
     });
   });
 
+  describe('canUndo', () => {
+    describe('with commands that can undo', () => {
+      beforeEach(async () => {
+        compound = createDeferredCompoundCommand(
+          'sync-sync',
+          ['the-model'],
+          provideCommands
+        );
+        await compound.execute(getModel);
+      });
+
+      it('is true', () => {
+        return expect(compound.canUndo(getModel), 'compound not undoable').to
+          .eventually.be.true;
+      });
+
+      it('is false by reason of itself', async () => {
+        await compound.undo(getModel); // Make it non-undoable by undoing it
+
+        return expect(compound.canUndo(getModel), 'compound is executable').to
+          .eventually.be.false;
+      });
+    });
+
+    describe('without constituent commands', () => {
+      beforeEach(async () => {
+        sandbox = sinon.createSandbox();
+
+        compound = createDeferredCompoundCommand(
+          'sync-sync',
+          ['the-model'],
+          () => []
+        );
+        await compound.execute(getModel);
+      });
+
+      afterEach(() => {
+        sandbox.restore();
+      });
+
+      it('is true', async () => {
+        const spyConsoleDebug = sandbox.spy(console, 'debug');
+        const undoResult = await compound.canUndo(getModel);
+        expect(undoResult, 'compound not undoable').to.be.true;
+        expect(
+          spyConsoleDebug,
+          'no debug log for no command'
+        ).to.have.been.calledWithMatch(
+          'model-manager/command:',
+          `No constituent command for ${compound.label}.`
+        );
+      });
+
+      it('is false by reason of itself', async () => {
+        await compound.undo(getModel); // Make it non-undoable by undoing it
+
+        expect(compound.canUndo(getModel), 'compound is undoable').to.eventually
+          .be.false;
+      });
+    });
+  });
+
+  describe('canRedo', () => {
+    describe('with commands that can redo', () => {
+      beforeEach(() => {
+        compound = createDeferredCompoundCommand(
+          'sync-sync',
+          ['the-model'],
+          provideCommands
+        );
+      });
+
+      it('is false (not executed yet)', () => {
+        return expect(compound.canRedo(getModel), 'compound redoable').to
+          .eventually.be.false;
+      });
+
+      it('is false (executed but not undone)', async () => {
+        await compound.execute(getModel); // Make it undoable by executing it
+
+        return expect(compound.canRedo(getModel), 'compound redoable').to
+          .eventually.be.false;
+      });
+
+      it('is true (executed and undone)', async () => {
+        await compound.execute(getModel); // Make it undoable by executing it
+        await compound.undo(getModel); // Make it redoable
+
+        return expect(compound.canRedo(getModel), 'compound is not redoable').to
+          .eventually.be.true;
+      });
+    });
+
+    describe('without constituent commands', () => {
+      beforeEach(async () => {
+        sandbox = sinon.createSandbox();
+
+        compound = createDeferredCompoundCommand(
+          'sync-sync',
+          ['the-model'],
+          () => []
+        );
+      });
+
+      afterEach(() => {
+        sandbox.restore();
+      });
+
+      it('is false (not executed yet)', async () => {
+        expect(compound.canRedo(getModel), 'compound redoable').to.eventually.be
+          .false;
+      });
+
+      it('is false (executed but not undone)', async () => {
+        await compound.execute(getModel); // Make it undoable by executing it
+
+        return expect(compound.canRedo(getModel), 'compound redoable').to
+          .eventually.be.false;
+      });
+
+      it('is true (executed and undone)', async () => {
+        await compound.execute(getModel); // Make it undoable by executing it
+        await compound.undo(getModel); // Make it non-undoable by undoing it
+
+        const spyConsoleDebug = sandbox.spy(console, 'debug');
+        const canRedoResult = await compound.canRedo(getModel);
+        expect(canRedoResult, 'compound not redoable').to.be.true;
+        expect(
+          spyConsoleDebug,
+          'no debug log for no command'
+        ).to.have.been.calledWithMatch(
+          'model-manager/command:',
+          `No constituent command for ${compound.label}.`
+        );
+      });
+    });
+  });
+
   describe('model scope', () => {
     beforeEach(() => {
       compound = createDeferredCompoundCommand(
@@ -210,6 +348,7 @@ describe('optimistic DeferredCompoundCommand', () => {
       await compound.execute(getModel);
 
       expect(console_warn).to.have.been.calledWithMatch(
+        'model-manager/deferred-compound-command-impl:',
         /.*expands the model scope.*/
       );
     });
@@ -344,15 +483,20 @@ describe('strict DeferredCompoundCommand', () => {
         .eventually.be.false;
     });
 
-    it('not executable if no commands provided', () => {
+    it('executable if no commands provided', async () => {
+      const spyConsoleDebug = sandbox.spy(console, 'debug');
       compound = createStrictDeferredCompoundCommand(
         'sync-sync',
         ['the-model'],
         () => []
       );
 
-      return expect(compound.canExecute(getModel), 'compound is executable').to
-        .eventually.be.false;
+      const result = await compound.canExecute(getModel);
+      expect(result, 'compound is not executable').to.be.true;
+      expect(spyConsoleDebug).to.have.been.calledWithMatch(
+        'model-manager/command:',
+        `No constituent command for ${compound.label}.`
+      );
     });
   });
 

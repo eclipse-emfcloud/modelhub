@@ -43,6 +43,7 @@ import {
   RpcConnectionFactory,
   bindFakeRpcConnectionFactory,
 } from './fake-json-rpc';
+import { Emitter, RpcProxy } from '@theia/core';
 
 chai.use(chaiLike);
 chai.use(sinonChai);
@@ -65,35 +66,58 @@ function createTestContainer(
   return container;
 }
 
+type ClientProxy = RpcProxy<ModelHubClient> & {
+  [key in keyof ModelHubClient]: sinon.SinonSpy<
+    Parameters<ModelHubClient[key]>
+  >;
+};
+
+class MockClientProxy implements ClientProxy {
+  // ModelHub Client spies
+
+  connectionListeners: (() => void)[] = [];
+  onModelChanged = sinon.stub<Parameters<ClientProxy['onModelChanged']>>();
+  onModelDirtyState =
+    sinon.stub<Parameters<ClientProxy['onModelDirtyState']>>();
+  onModelValidated = sinon.stub<Parameters<ClientProxy['onModelValidated']>>();
+  onModelLoaded = sinon.stub<Parameters<ClientProxy['onModelLoaded']>>();
+  onModelUnloaded = sinon.stub<Parameters<ClientProxy['onModelUnloaded']>>();
+  onModelHubDisposed =
+    sinon.stub<Parameters<ClientProxy['onModelHubDisposed']>>();
+  closeSubscription =
+    sinon.stub<Parameters<ClientProxy['closeSubscription']>>();
+  onModelHubCreated =
+    sinon.stub<Parameters<ClientProxy['onModelHubCreated']>>();
+  onModelHubDestroyed =
+    sinon.stub<Parameters<ClientProxy['onModelHubDestroyed']>>();
+
+  // Client lifecycle events
+
+  private openConnectionEmitter = new Emitter<void>();
+  private closeConnectionEmitter = new Emitter<void>();
+  onDidOpenConnection = this.openConnectionEmitter.event;
+  onDidCloseConnection = this.closeConnectionEmitter.event;
+  closeConnection(): void {
+    this.closeConnectionEmitter.fire();
+  }
+}
+
 describe('ModelHubServer', () => {
   const appContext = 'test-app';
 
   let sandbox: sinon.SinonSandbox;
   let contrib1: Contribution1;
   let modelHubServer: ModelHubServer;
-  let clientProxy: {
-    [key in keyof ModelHubClient]: sinon.SinonSpy<
-      Parameters<ModelHubClient[key]>
-    >;
-  };
+  let clientProxy: MockClientProxy;
   let modelHub: ModelHub;
+  let container: Container;
 
   beforeEach(async () => {
     sandbox = sinon.createSandbox();
     contrib1 = new Contribution1();
-    const container = createTestContainer(contrib1);
+    container = createTestContainer(contrib1);
     const factory = container.get(RpcConnectionFactory);
-    clientProxy = {
-      onModelChanged: sandbox.stub(),
-      onModelDirtyState: sandbox.stub(),
-      onModelValidated: sandbox.stub(),
-      onModelLoaded: sandbox.stub(),
-      onModelUnloaded: sandbox.stub(),
-      onModelHubDisposed: sandbox.stub(),
-      closeSubscription: sandbox.stub(),
-      onModelHubCreated: sandbox.stub(),
-      onModelHubDestroyed: sandbox.stub(),
-    };
+    clientProxy = new MockClientProxy();
     modelHubServer = await factory.getServer<ModelHubServer>(
       ModelHubProtocolServicePath,
       clientProxy
@@ -342,6 +366,40 @@ describe('ModelHubServer', () => {
       await modelHubServer.getModel(appContext, MODEL1_ID);
       modelHub.dispose();
       expect(clientProxy.onModelHubDestroyed).to.have.been.calledWith(
+        appContext
+      );
+    });
+  });
+
+  describe('multiple clients', () => {
+    let clientProxy2: MockClientProxy;
+    let modelHubServer2: ModelHubServer;
+
+    beforeEach(async () => {
+      clientProxy2 = new MockClientProxy();
+      const factory = container.get(RpcConnectionFactory);
+      modelHubServer2 = await factory.getServer<ModelHubServer>(
+        ModelHubProtocolServicePath,
+        clientProxy2
+      );
+    });
+
+    it('supports multiple clients', async () => {
+      expect(modelHubServer2).to.exist;
+      expect(modelHubServer2).not.to.be.equal(modelHubServer); // Different instances
+    });
+
+    it('can close client', async () => {
+      const token = await modelHubServer.subscribe(appContext, MODEL1_ID);
+      clientProxy.closeConnection();
+      // closeSubscription should be called before the client is removed. A real
+      // client would not receive the event (since the connection is closed), but our
+      // mock client doesn't actually have a connection to close.
+      sinon.assert.calledWithExactly(clientProxy.closeSubscription, token.id);
+
+      // Other server+client still works as expected
+      await modelHubServer2.getModel(appContext, MODEL1_ID);
+      expect(clientProxy2.onModelHubCreated).to.have.been.calledWith(
         appContext
       );
     });

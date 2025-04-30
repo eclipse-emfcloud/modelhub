@@ -99,7 +99,12 @@ describe('ModelValidationServiceImpl', () => {
         modelValidationService.getValidationState('key1')
       ).to.be.deep.equal(ok());
       const msg = `An error occurred within a validator during the validation of 'key1'. Error: This is an error. Validation continues ignoring the failed validator`;
-      expect(consoleWarnStub.calledWith(msg)).to.be.true;
+      expect(
+        consoleWarnStub.calledWith(
+          'model-validation/model-validation-service:',
+          msg
+        )
+      ).to.be.true;
     });
     it('rejects the promises from validator do not crash the whole process', async () => {
       modelValidationService.addValidator(validatorOK);
@@ -109,7 +114,12 @@ describe('ModelValidationServiceImpl', () => {
         modelValidationService.getValidationState('key1')
       ).to.be.deep.equal(ok());
       const msg = `An error occurred within a validator during the validation of 'key1' (cause: rejected Promise). Validation continues ignoring the failed validator`;
-      expect(consoleWarnStub.calledWith(msg)).to.be.true;
+      expect(
+        consoleWarnStub.calledWith(
+          'model-validation/model-validation-service:',
+          msg
+        )
+      ).to.be.true;
     });
   });
 
@@ -193,10 +203,20 @@ describe('ModelValidationServiceImpl', () => {
       subscriptionB.onValidationChanged = Sinon.spy();
       await modelValidationService.validate('key1', {});
       const msg1 = `An error occurred within the onValidationChanged callback for 'key1'. Error: This is an onValidationChanged exception. Other subscribers will still be notified ignoring the failed callback`;
-      expect(consoleWarnStub.calledWith(msg1)).to.be.true;
+      expect(
+        consoleWarnStub.calledWith(
+          'model-validation/model-validation-service:',
+          msg1
+        )
+      ).to.be.true;
       await modelValidationService.validate('key2', {});
       const msg2 = `An error occurred within the onValidationChanged callback for 'key2'. Error: This is an onValidationChanged exception. Other subscribers will still be notified ignoring the failed callback`;
-      expect(consoleWarnStub.calledWith(msg2)).to.be.true;
+      expect(
+        consoleWarnStub.calledWith(
+          'model-validation/model-validation-service:',
+          msg2
+        )
+      ).to.be.true;
       expect(subscriptionB.onValidationChanged).to.be.calledTwice;
       subscriptionA.close();
       subscriptionB.close();
@@ -215,7 +235,12 @@ describe('ModelValidationServiceImpl', () => {
       await modelValidationService.validate('key1', {});
       expect(subscriptionB.onValidationChanged).to.be.calledOnce;
       const msg = `An error occurred within the onValidationChanged callback for 'key1'. Error: This is an onValidationChanged exception. Other subscribers will still be notified ignoring the failed callback`;
-      expect(consoleWarnStub.calledWith(msg)).to.be.true;
+      expect(
+        consoleWarnStub.calledWith(
+          'model-validation/model-validation-service:',
+          msg
+        )
+      ).to.be.true;
       subscriptionA.close();
       subscriptionB.close();
     });

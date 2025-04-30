@@ -17,7 +17,9 @@ import isEqual from 'lodash/isEqual';
 import { Diagnostic, merge } from './diagnostic';
 import { ValidationSubscription } from './validation-subscription';
 import { Validator } from './validator';
+import { getLogger } from '@eclipse-emfcloud/model-logger';
 
+const logger = getLogger('model-validation/model-validation-service');
 /**
  * A service for validation of models. The validation algorithm is
  * delegated to pluggable {@link Validator}s. The service maintains the
@@ -92,7 +94,7 @@ export class ModelValidationServiceImpl<K>
       try {
         diagnosticPromises.push(validator.validate(modelId, model));
       } catch (err) {
-        console.warn(
+        logger.warn(
           `An error occurred within a validator during the validation of '${modelId}'. ${err.name}: ${err.message}. Validation continues ignoring the failed validator`
         );
         return;
@@ -104,10 +106,10 @@ export class ModelValidationServiceImpl<K>
       if (values.status === 'fulfilled') {
         diagnostics.push(values.value);
       } else {
-        console.warn(
+        logger.warn(
           `An error occurred within a validator during the validation of '${modelId}' (cause: ${values.reason}). Validation continues ignoring the failed validator`
         );
-        console.warn(values.reason);
+        logger.warn(values.reason);
       }
     });
 
@@ -119,7 +121,7 @@ export class ModelValidationServiceImpl<K>
         try {
           subscription.onValidationChanged?.(modelId, model, result);
         } catch (err) {
-          console.warn(
+          logger.warn(
             `An error occurred within the onValidationChanged callback for '${modelId}'. ${err.name}: ${err.message}. Other subscribers will still be notified ignoring the failed callback`
           );
         }
@@ -128,7 +130,7 @@ export class ModelValidationServiceImpl<K>
         try {
           subscription.onValidationChanged?.(modelId, model, result);
         } catch (err) {
-          console.warn(
+          logger.warn(
             `An error occurred within the onValidationChanged callback for '${modelId}'. ${err.name}: ${err.message}. Other subscribers will still be notified ignoring the failed callback`
           );
         }

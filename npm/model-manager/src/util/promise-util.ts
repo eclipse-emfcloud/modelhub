@@ -13,6 +13,9 @@
 // SPDX-License-Identifier: EPL-2.0 OR MIT
 // *****************************************************************************
 import { EditingContext } from '../core';
+import { getLogger } from '@eclipse-emfcloud/model-logger';
+
+const logger = getLogger('model-manager/promise-util');
 
 /**
  * Utility for execution of async functions that must be given mutually
@@ -51,7 +54,18 @@ export class ExclusiveExecutor<K> {
 
     // Don't propagate any error to the next caller in the chain
     const lockOperation = new Promise<void>((resolve) => {
-      result.finally(resolve);
+      result
+        .catch((error) => {
+          if (error instanceof Error) {
+            logger.debug(
+              'Error occurred during command execution:',
+              error.message
+            );
+          } else {
+            logger.debug('Error occurred during command execution.', error);
+          }
+        })
+        .finally(resolve);
     });
 
     const lock: Lock<K> = {
