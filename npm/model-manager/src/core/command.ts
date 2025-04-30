@@ -15,7 +15,7 @@
 
 import type { Operation } from 'fast-json-patch';
 import { MaybePromise } from './promises';
-
+import { getLogger } from '@eclipse-emfcloud/model-logger';
 /**
  * An union of _command_ types that can be executed on a {@link CoreCommandStack} to edit a model.
  *
@@ -374,6 +374,8 @@ export type CommandResult<K = string> = Promise<
  */
 type State = 'ready' | 'executed' | 'undone';
 
+const logger = getLogger('model-manager/command');
+
 /**
  * A basic implementation of the `CompoundCommand` interface suitable for most uses.
  *
@@ -494,7 +496,7 @@ export class CompoundCommandImpl<K = string> implements CompoundCommand<K> {
     predicate: (command: Command<K>) => MaybePromise<boolean>
   ): Promise<boolean> {
     if (!this._commands.length) {
-      return false;
+      logger.debug(`No constituent command for ${this.label}.`);
     }
 
     for (const command of this._commands) {
@@ -600,7 +602,7 @@ export class CompoundCommandImpl<K = string> implements CompoundCommand<K> {
             await command[revert](model);
           }
         } catch (error) {
-          console.error(
+          logger.error(
             `Error in recovery of failed ${operation}. Continuing best-effort rewind.`,
             error
           );

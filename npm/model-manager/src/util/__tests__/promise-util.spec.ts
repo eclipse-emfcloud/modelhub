@@ -196,6 +196,21 @@ describe('ExclusiveExecutor', () => {
 
     expect(operation2.state).to.equal('complete');
   });
+
+  describe('Corner cases', () => {
+    it('sequencing lock handles non-errors thrown', async () => {
+      let x = 0;
+      const a = exec.run(async () => ++x, [TEST_CONTEXT]);
+      const b = exec.run(async () => {
+        throw '💣';
+      }, [TEST_CONTEXT]);
+      const c = exec.run(async () => ++x, [TEST_CONTEXT]);
+
+      expect(a).to.eventually.be.equal(1);
+      expect(b).to.eventually.be.rejected;
+      expect(c).to.eventually.be.equal(2);
+    });
+  });
 });
 
 class MockOperation {

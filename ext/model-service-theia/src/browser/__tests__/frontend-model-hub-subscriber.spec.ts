@@ -54,7 +54,7 @@ describe('FrontendModelHubSubscriber', () => {
   const appContext = 'test-app';
 
   let sandbox: sinon.SinonSandbox;
-  let fake: FakeModelHubProtocol;
+  let fake: FakeModelHubProtocol<string>;
   let subscriber: FrontendModelHubSubscriber;
   let tracker: ModelHubTracker;
 
@@ -78,7 +78,7 @@ describe('FrontendModelHubSubscriber', () => {
     );
     tracker = container.get<ModelHubTracker>(ModelHubTracker);
 
-    fake = container.get(FakeModelHubProtocol);
+    fake = container.get<FakeModelHubProtocol<string>>(FakeModelHubProtocol);
     fake.setModel(MODEL1_ID, MODEL1);
     connectClient(fake, subscriber);
 

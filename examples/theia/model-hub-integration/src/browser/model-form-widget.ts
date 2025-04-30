@@ -53,6 +53,12 @@ export abstract class ModelFormWidget<M extends NonNullable<object>>
   @inject(ILogger)
   protected readonly logger: ILogger;
 
+  protected readonly onContentChangeEmitter = new Emitter<void>();
+
+  get onContentChanged() {
+    return this.onContentChangeEmitter.event;
+  }
+
   private _dirty = false;
   private dirtyChangedEmitter = new Emitter<void>();
   readonly onDirtyChanged = this.dirtyChangedEmitter.event;

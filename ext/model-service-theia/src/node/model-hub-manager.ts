@@ -124,7 +124,7 @@ export class DefaultModelHubManager<K = string>
   @inject(Stopwatch)
   protected stopwatch: Stopwatch | undefined;
 
-  private readonly initializationTimeoutMs = 30_000;
+  private readonly initializationTimeoutMs = 30_000 * 4;
 
   private readonly modelHubs = new Map<string, ModelHubRecord<K>>();
 

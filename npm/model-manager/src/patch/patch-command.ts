@@ -13,6 +13,7 @@
 // SPDX-License-Identifier: EPL-2.0 OR MIT
 // *****************************************************************************
 import { Operation, applyPatch, compare } from 'fast-json-patch';
+import { getLogger } from '@eclipse-emfcloud/model-logger';
 import cloneDeep from 'lodash/cloneDeep';
 import {
   CommandReturnResult,
@@ -21,6 +22,9 @@ import {
   SimpleCommand,
   SimpleCommandWithResult,
 } from '../core';
+
+const logger = getLogger('model-manager/patch-command');
+
 /**
  * The type of a function that patches a model by direct modification of a working copy.
  *
@@ -267,7 +271,7 @@ export class PatchCommand<K = string> implements SimpleCommand<K> {
         throw error;
       }
 
-      console.debug(
+      logger.debug(
         'Inapplicable undo/redo patch. Re-trying without tests.',
         error
       );

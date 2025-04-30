@@ -27,7 +27,7 @@
   },
   "engines": {
     "yarn": ">=1.7.0 <2.x.x",
-    "node": ">=18.0.0"
+    "node": ">=20.14.0"
   },
   "files": [
     "lib",
@@ -45,7 +45,7 @@
     "@types/chai": "^4.2.22",
     "@types/chai-like": "^1.1.1",
     "@types/mocha": "^9.0.0",
-    "@types/node": "^16.10.3",
+    "@types/node": "^20.14.0",
     "@types/sinon": "^10.0.13",
     "@types/sinon-chai": "^3.2.9",
     "@typescript-eslint/eslint-plugin": "^6.7.5",

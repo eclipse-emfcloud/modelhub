@@ -14,6 +14,7 @@
 // *****************************************************************************
 
 import { ModelAccessorBus } from '@eclipse-emfcloud/model-accessor-bus';
+import { getLogger } from '@eclipse-emfcloud/model-logger';
 import {
   ChangeSubscription,
   CommandStack,
@@ -37,6 +38,8 @@ import {
 import { HubAwareProvider } from './hub-aware-accessor-provider';
 import { ModelManagerSubscription } from './model-service-model-manager';
 import { ModelTriggerEngine } from './model-trigger-engine';
+
+const logger = getLogger('model-service/model-hub-impl');
 
 export class ModelHubImpl<K = string, C = unknown> implements ModelHub<K, C> {
   private contributions = new Map<string, ModelServiceContribution<K>>();
@@ -496,7 +499,7 @@ const safeCallback = <F extends (this: unknown, ...args: unknown[]) => void>(
   try {
     callback.call(thisArg, ...args);
   } catch (error) {
-    console.error('Uncaught exception in ModelHub call-back.', error);
+    logger.error('Uncaught exception in ModelHub call-back.', error);
   }
 };
 

@@ -16,6 +16,7 @@
 import {
   ModelHub,
   ModelHubSubscription,
+  ModelServiceSubscription,
 } from '@eclipse-emfcloud/model-service';
 import { Diagnostic } from '@eclipse-emfcloud/model-validation';
 import { ILogger } from '@theia/core';
@@ -80,11 +81,16 @@ export type FrontendModelHub<K = string> = {
     | 'getModelService'
     | 'liveValidation'
     | 'getModelAccessorBus'
+    | 'subscribe'
   >]: MakeAsync<ModelHub<K, string>[key]>;
 } & {
   readonly context: string;
   readonly isDisposed: boolean;
   getModelAccessorBus: () => FrontendModelAccessorBus;
+  subscribe<M extends object = object>(): Promise<ModelHubSubscription<K, M>>;
+  subscribe<M extends object = object>(
+    ...modelIds: K[]
+  ): Promise<ModelServiceSubscription<K, M>>;
 };
 
 export const FrontendModelHubContext = Symbol('FrontendModelHubContext');

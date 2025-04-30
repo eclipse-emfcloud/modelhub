@@ -860,6 +860,7 @@ describe('PatchCommand', () => {
 
         await command.undo(document);
         expect(debug).to.have.been.calledWithMatch(
+          'model-manager/patch-command',
           'Inapplicable undo/redo patch.',
           Error
         );

@@ -33,11 +33,13 @@ import {
   isCompoundCommand,
 } from '../core';
 import { DeferredCompoundCommand } from './deferred-compound-command-impl';
-
 import { ExclusiveExecutor } from '../util';
+import { getLogger } from '@eclipse-emfcloud/model-logger';
 
 /** Any operation that can be performed on a command. */
 export type CommandOp = 'execute' | UndoRedoOp;
+
+const logger = getLogger('model-manager/core-command-stack-impl');
 
 /** A savepoint record that points to a stack entry. */
 interface StackEntrySavepoint<K = string> {
@@ -544,7 +546,7 @@ export class CoreCommandStackImpl<K = string> implements CoreCommandStack<K> {
     if (followUp) {
       const canFollowUp = await this.test('canExecute', followUp);
       if (!canFollowUp) {
-        console.error(
+        logger.error(
           'Follow-up command is not executable. Model integrity may be compromised.'
         );
       } else {
@@ -1575,7 +1577,7 @@ const safeCallback = <F extends (...args: unknown[]) => void>(
   try {
     callback(...args);
   } catch (error) {
-    console.error('Uncaught exception in CoreCommandStack call-back.', error);
+    logger.error('Uncaught exception in CoreCommandStack call-back.', error);
   }
 };
 

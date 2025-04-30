@@ -992,7 +992,10 @@ describe('ModelHubImpl', () => {
       modelHub.dispose();
 
       expect(disposeA).to.have.been.called;
-      expect(consoleStub).to.have.been.calledWithMatch(/Uncaught exception.*/);
+      expect(consoleStub).to.have.been.calledWithMatch(
+        'model-service/model-hub-impl:',
+        /Uncaught exception.*/
+      );
 
       expect(disposeB).to.have.been.called;
     });
@@ -1281,6 +1284,7 @@ describe('ModelHubImpl', () => {
       await modelHub.getModel('test.extA');
       await asyncsResolved();
       expect(consoleStub, 'Error not logged').to.have.been.calledWith(
+        sinon.match('model-service/model-hub-impl:'),
         sinon.match(/Uncaught exception.*/),
         sinon.match.instanceOf(Error)
       );
@@ -1365,6 +1369,7 @@ describe('ModelHubImpl', () => {
       modelManager.removeModel('test.extA');
 
       expect(consoleStub, 'Error not logged').to.have.been.calledWith(
+        sinon.match('model-service/model-hub-impl:'),
         sinon.match(/Uncaught exception.*/),
         sinon.match.instanceOf(Error)
       );

@@ -42,6 +42,7 @@ import {
   RpcConnectionFactory,
   bindFakeRpcConnectionFactory,
 } from './fake-json-rpc';
+import { Emitter, Event } from '@theia/core';
 
 type FakeModel = Record<string, unknown>;
 const FAKE_MODEL_ID = 'test.fake-model';
@@ -58,16 +59,28 @@ function createTestContainer(contrib: ModelServiceContribution): Container {
 type FullModelAccessorBusServer = ModelAccessorBusServer<string> & {
   getModelAccessorBus: (context: string) => Promise<ModelAccessorBus>;
 };
+
 describe('Model Accessor Bus Server', () => {
   const appContext = 'test-app';
 
   let sandbox: sinon.SinonSandbox;
   let modelAccessorBusServer: ModelAccessorBusServer;
+  let modelAccessorBusServer2: ModelAccessorBusServer;
+
   let fakeContribution: FakeContribution;
   let clientProxy: {
-    [key in keyof ModelAccessorBusClient]: sinon.SinonSpy<
-      Parameters<ModelAccessorBusClient[key]>
-    >;
+    onAccessorChanged: sinon.SinonSpy;
+    closeSubscription: sinon.SinonSpy;
+    onDidOpenConnection: Event<void>;
+    onDidCloseConnection: Event<void>;
+    closeConnection: () => void;
+  };
+  let clientProxy2: {
+    onAccessorChanged: sinon.SinonSpy;
+    closeSubscription: sinon.SinonSpy;
+    onDidOpenConnection: Event<void>;
+    onDidCloseConnection: Event<void>;
+    closeConnection: () => void;
   };
 
   beforeEach(async () => {
@@ -75,9 +88,15 @@ describe('Model Accessor Bus Server', () => {
     fakeContribution = new FakeContribution();
     const container = createTestContainer(fakeContribution);
     const factory = container.get(RpcConnectionFactory);
+    const closeConnectionEmitter = new Emitter<void>();
     clientProxy = {
       onAccessorChanged: sandbox.stub(),
       closeSubscription: sandbox.stub(),
+      onDidOpenConnection: new Emitter<void>().event,
+      onDidCloseConnection: closeConnectionEmitter.event,
+      closeConnection(): void {
+        closeConnectionEmitter.fire();
+      },
     };
     modelAccessorBusServer = await factory.getServer<ModelAccessorBusServer>(
       ModelAccessorBusProtocolServicePath,
@@ -275,6 +294,7 @@ describe('Model Accessor Bus Server', () => {
       expect(clientProxy.onAccessorChanged.calledOnceWith(1)).to.be.true;
     });
   });
+
   describe('getModelAccessorBus', async () => {
     it('expect to be different on different contexts', async () => {
       const spiedAccessorBusAccess = sandbox.spy(
@@ -305,6 +325,45 @@ describe('Model Accessor Bus Server', () => {
       const bus_1 = await spiedAccessorBusAccess.getModelAccessorBus
         .returnValues[1];
       expect(bus_0 === bus_1).to.be.true;
+    });
+  });
+
+  describe('multiple clients', () => {
+    beforeEach(async () => {
+      const closeConnectionEmitter = new Emitter<void>();
+      clientProxy2 = {
+        onAccessorChanged: sandbox.stub(),
+        closeSubscription: sandbox.stub(),
+        onDidOpenConnection: new Emitter<void>().event,
+        onDidCloseConnection: closeConnectionEmitter.event,
+        closeConnection(): void {
+          closeConnectionEmitter.fire();
+        },
+      };
+      const container = createTestContainer(fakeContribution);
+      const factory = container.get(RpcConnectionFactory);
+      modelAccessorBusServer2 = await factory.getServer<ModelAccessorBusServer>(
+        ModelAccessorBusProtocolServicePath,
+        clientProxy2
+      );
+    });
+
+    it('supports multiple clients', async () => {
+      expect(modelAccessorBusServer2).to.exist;
+      expect(modelAccessorBusServer2).not.to.be.equal(modelAccessorBusServer); // Different instances
+    });
+
+    it('can close client', async () => {
+      const token = await modelAccessorBusServer.subscribe(appContext, 'test');
+      clientProxy.closeConnection();
+      // closeSubscription should be called before the client is removed. A real
+      // client would not receive the event (since the connection is closed), but our
+      // mock client doesn't actually have a connection to close.
+      sinon.assert.calledWithExactly(clientProxy.closeSubscription, token.id);
+      expect(modelAccessorBusServer.getClient()).to.be.undefined;
+
+      // Other server+client still exists
+      expect(modelAccessorBusServer2.getClient()).to.exist;
     });
   });
 });
